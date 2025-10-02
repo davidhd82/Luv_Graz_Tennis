@@ -1,11 +1,17 @@
-    import Booking from "./views/Booking.tsx";
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import Booking from "./views/Booking.tsx"
+import MainPage from "./views/MainPage.tsx";
+
 
 function App() {
-  return (
-    <>
-        <Booking/>
-    </>
-  )
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<MainPage />}/>
+                <Route path="/booking" element={<Booking />} />
+            </Routes>
+        </Router>
+    );
 }
 
 export default App

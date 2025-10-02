@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../css/MainPage.css';
+import { useNavigate, Outlet } from 'react-router-dom';
+
 
 import tcLuv02 from '../assets/tc_luv02.jpg';
 import tcLuv05 from '../assets/tc_luv05-1024x768.jpg';
@@ -8,9 +10,15 @@ import tcluv03 from '../assets/tcluv_03.jpg';
 import tcluv04 from '../assets/tcluv_04-1024x576.jpg';
 
 function MainPage() {
+    const navigate = useNavigate();
+
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const slides = [tcLuv02, tcLuv05, tcluv01, tcluv03, tcluv04];
+
+    const handleBookingClick = () => {
+        navigate('/booking');
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -92,11 +100,12 @@ function MainPage() {
                     </div>
                 </div>
 
-                {/* Online Buchen Button vor dem Footer */}
                 <div className="booking-container-bottom">
-                    <button className="booking-btn-large">Online Buchen</button>
+                    <button className="booking-btn-large" onClick={handleBookingClick}>Online Buchen</button>
                 </div>
             </section>
+
+            <Outlet />
 
             <footer className="full-footer">
                 <div className="footer-content">
