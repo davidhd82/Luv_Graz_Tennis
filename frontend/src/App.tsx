@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Booking from "./views/Booking.tsx"
 import MainPage from "./views/MainPage.tsx";
 

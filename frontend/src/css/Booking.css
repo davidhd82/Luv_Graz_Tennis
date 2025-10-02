@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f0f4f9;
+    background: #f5f8f4;
 }
 
 .page {
@@ -14,48 +14,44 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(90deg, #0ea5a4, #1282a2);
+    background: linear-gradient(90deg, #2c5530, #1e3a23);
     color: white;
     padding: 14px 20px;
     border-radius: 10px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
 .header h1 {
     margin: 0;
 }
 
-.slots {
-    margin-top: 20px;
-    background: white;
-    border-radius: 10px;
-    padding: 16px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.slots h2 {
-    margin: 0 0 10px;
-}
-
-.slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-    gap: 8px;
-}
-
-.slot {
-    background: #e2f6f5;
-    padding: 8px;
-    text-align: center;
+.slot-btn {
+    background: #e6f0e9;
+    padding: 10px;
     border-radius: 6px;
+    border: 2px solid transparent;
     font-size: 14px;
-    transition: background 0.2s;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    color: #2c5530;
 }
 
-.slot:hover {
-    background: #0ea5a4;
+.slot-btn:hover:not(:disabled) {
+    background: #2c5530;
     color: white;
+}
+
+.slot-btn.selected {
+    background: #2c5530;
+    color: white;
+    border: 2px solid #1e3a23;
+}
+
+.slot-btn.disabled {
+    background: #f0f0f0;
+    color: #aaa;
+    cursor: not-allowed;
 }
 
 .grid {
@@ -80,6 +76,7 @@ body {
 .card h2 {
     margin: 0 0 10px;
     font-size: 20px;
+    color: #2c5530;
 }
 
 .card p {
@@ -87,7 +84,7 @@ body {
 }
 
 .free {
-    color: green;
+    color: #2c5530;
     font-weight: bold;
 }
 
@@ -101,7 +98,7 @@ button {
     padding: 10px 14px;
     border: none;
     border-radius: 8px;
-    background: #0ea5a4;
+    background: #2c5530;
     color: white;
     font-weight: bold;
     cursor: pointer;
@@ -109,10 +106,219 @@ button {
 }
 
 button:hover:not(:disabled) {
-    background: #1282a2;
+    background: #1e3a23;
 }
 
 button:disabled {
     background: #ccc;
     cursor: not-allowed;
+}
+
+.react-calendar {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    padding: 10px;
+    margin-bottom: 20px;
+    background: white;
+}
+
+.react-calendar__tile {
+    border-radius: 6px;
+    padding: 8px 0;
+    transition: background 0.2s;
+}
+
+.react-calendar__tile:enabled:hover {
+    background: #e6f0e9;
+}
+
+.react-calendar__tile--active {
+    background: #2c5530 !important;
+    color: white !important;
+}
+
+.partially-booked {
+    background: #fff4e5 !important;
+    color: #8c5200 !important;
+    font-weight: bold;
+}
+
+/* Footer */
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    padding: 16px;
+    background: #2c5530;
+    color: white;
+    border-radius: 10px;
+}
+
+.react-calendar {
+    width: 100%;
+    max-width: 600px;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #2c5530;
+}
+
+.react-calendar__navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.react-calendar__navigation button {
+    color: #2c5530;
+    min-width: 40px;
+    background: none;
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 2px;
+    border-radius: 6px;
+    padding: 6px;
+    transition: background 0.2s;
+}
+
+.react-calendar__navigation button:hover {
+    background: #e6f0e9;
+}
+
+.react-calendar__navigation button:disabled {
+    background: none;
+    color: #ccc;
+}
+
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #1e3a23;
+    margin-bottom: 6px;
+}
+
+.react-calendar__tile {
+    max-width: 100%;
+    padding: 12px 6px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    background: #e6f5eb;
+    color: #2c5530;
+}
+
+.react-calendar__tile:enabled:hover {
+    background: #cde9d6;
+}
+
+.react-calendar__tile--now {
+    border: 2px solid #2c5530;
+    font-weight: bold;
+}
+
+.react-calendar__tile--active {
+    background: #2c5530 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.partially-booked {
+    background: #fff7e6 !important;
+    color: #a65e00 !important;
+    font-weight: bold;
+}
+
+.react-calendar__tile:disabled {
+    background: #f0f0f0 !important;
+    color: #aaa !important;
+    cursor: not-allowed;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f8f4;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page {
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+}
+
+.calendar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.calendar-section h2 {
+    color: #000;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.calendar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.calendar-section h2 {
+    color: #2c5530;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.slots {
+    margin-top: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.slots h2 {
+    margin: 0 0 10px;
+    color: #2c5530;
+    text-align: center;
+}
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 10px;
+    justify-content: center;
+    max-width: 500px;
+}
+
+.confirm-btn {
+    margin-top: 16px;
+    background: #e67e22;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.confirm-btn:hover {
+    background: #ca6513;
 }
