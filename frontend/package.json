@@ -11,7 +11,9 @@
     "start": "vite"
   },
   "dependencies": {
+    "@mui/material": "^7.3.2",
     "@react-oauth/google": "^0.12.2",
+    "install": "^0.13.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

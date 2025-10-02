@@ -1,9 +1,9 @@
-import MainPage from "./views/MainPage.tsx";
+    import Booking from "./views/Booking.tsx";
 
 function App() {
   return (
     <>
-        <MainPage/>
+        <Booking/>
     </>
   )
 }
