@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +22,7 @@ const bookedCourts: Record<string, number[]> = {
 
 export default function BookingPage() {
     const navigate = useNavigate();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -52,6 +53,22 @@ export default function BookingPage() {
 
     const unavailableCourts = courtKey ? bookedCourts[courtKey] || [] : [];
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        setIsLoggedIn(!!token);
+    }, []);
+
+    const handleBooking = () => {
+        if (!isLoggedIn) {
+            alert('Bitte melden Sie sich an, um zu buchen.');
+            navigate('/login');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        alert('Buchung erfolgreich!');
+    };
+
     return (
         <div className="page">
             <header className="header">
@@ -59,7 +76,7 @@ export default function BookingPage() {
             </header>
 
             <div>
-                <button className="" onClick={() => {
+                <button onClick={() => {
                     navigate('/');
                 }}>Zurück</button>
             </div>
@@ -147,7 +164,9 @@ export default function BookingPage() {
                         <strong>{selectedTime}</strong> –{" "}
                         <strong>Platz {selectedCourt}</strong>
                     </p>
-                    <button className="confirm-btn">Jetzt buchen</button>
+                    <button className="confirm-btn" onClick={handleBooking}>
+                        {isLoggedIn ? 'Jetzt buchen' : 'Anmelden & Buchen'}
+                    </button>
                 </footer>
             )}
         </div>

@@ -155,6 +155,42 @@
     padding-bottom: 1rem;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.login-btn, .register-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid white;
+    border-radius: 4px;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.login-btn:hover, .register-btn:hover {
+    background: white;
+    color: #2c5530;
+}
+
+.register-btn {
+    background: white;
+    color: #2c5530;
+    border: 1px solid white;
+}
+
+.register-btn:hover {
+    background: transparent;
+    color: white;
+}
+
 .text-content {
     max-width: 1200px;
     margin: 0 auto 3rem auto;
@@ -422,4 +458,5 @@
     .booking-btn-large:hover {
         background-color: #1e3a23;
     }
+
 }

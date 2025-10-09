@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import '../css/MainPage.css';
 import { useNavigate, Outlet } from 'react-router-dom';
 
-
 import tcLuv02 from '../assets/tc_luv02.jpg';
 import tcLuv05 from '../assets/tc_luv05-1024x768.jpg';
 import tcluv01 from '../assets/tcluv_01-1024x768.jpg';
@@ -11,14 +10,12 @@ import tcluv04 from '../assets/tcluv_04-1024x576.jpg';
 
 function MainPage() {
     const navigate = useNavigate();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const slides = [tcLuv02, tcLuv05, tcluv01, tcluv03, tcluv04];
-
-    const handleBookingClick = () => {
-        navigate('/booking');
-    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -27,10 +24,56 @@ function MainPage() {
         return () => clearInterval(interval);
     }, [slides.length]);
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+
+        if (token && userData) {
+            setIsLoggedIn(true);
+            setUser(JSON.parse(userData));
+        }
+    }, []);
+
+    const handleAuthSuccess = (token: string, userData: any) => {
+        setIsLoggedIn(true);
+        setUser(userData);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setIsLoggedIn(false);
+        setUser(null);
+    };
+
     return (
         <div className="app">
             <header className="full-width-header">
                 <div className="header-content">
+                    <div className="header-top">
+                        <h2 className="club-title">TC LUV Graz</h2>
+                        <div className="header-actions">
+                            {isLoggedIn ? (
+                                <UserProfile user={user} onLogout={handleLogout} />
+                            ) : (
+                                <div className="auth-buttons">
+                                    <button
+                                        className="login-btn"
+                                        onClick={() => navigate('/login')}
+                                    >
+                                        Anmelden
+                                    </button>
+                                    <button
+                                        className="register-btn"
+                                        onClick={() => navigate('/register')}
+                                    >
+                                        Registrieren
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="header-top">
                         <h2 className="club-title">TC LUV Graz</h2>
                     </div>
@@ -101,7 +144,9 @@ function MainPage() {
                 </div>
 
                 <div className="booking-container-bottom">
-                    <button className="booking-btn-large" onClick={handleBookingClick}>Online Buchen</button>
+                    <button className="booking-btn-large"
+                            onClick={() => {navigate('/booking')}}
+                    >Online Buchen</button>
                 </div>
             </section>
 
