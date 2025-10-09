@@ -20,18 +20,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long userId;
 
+    @Column(nullable = false)
     private String firstName;
+    @Column(nullable = false)
     private String lastName;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
+    @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String postalCode;
+    @Column(nullable = false)
     private String city;
+    @Column(nullable = false)
     private String street;
 
+    @Column(nullable = false)
     private String mobile;
+    @Column(nullable = false)
     private String salutation;
     private String title;
 
