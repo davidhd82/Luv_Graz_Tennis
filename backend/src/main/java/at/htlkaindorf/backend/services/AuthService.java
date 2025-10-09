@@ -23,6 +23,7 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     public AuthResponse register(RegisterRequest request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists!");
         }
@@ -33,6 +34,13 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        user.setPostalCode(request.getPostalCode());
+        user.setCity(request.getCity());
+        user.setStreet(request.getStreet());
+        user.setMobile(request.getMobile());
+        user.setSalutation(request.getSalutation());
+        user.setTitle(request.getTitle());
+
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
@@ -42,8 +50,10 @@ public class AuthService {
         response.setEmail(user.getEmail());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
+
         return response;
     }
+
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
