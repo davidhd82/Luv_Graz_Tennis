@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './UserProfile.css';
+import '../css/UserProfile.css';
 
 interface UserProfileProps {
     user: any;
