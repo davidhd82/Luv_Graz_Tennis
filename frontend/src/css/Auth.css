@@ -15,12 +15,6 @@
     max-width: 400px;
 }
 
-.auth-form h2 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    color: #2c5530;
-}
-
 .form-group {
     margin-bottom: 1rem;
 }
@@ -42,13 +36,15 @@
 .auth-form button {
     width: 100%;
     padding: 0.75rem;
-    background-color: #2c5530;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
     color: white;
     border: none;
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
     margin-top: 1rem;
+    font-weight: 600;
+    transition: transform 0.2s;
 }
 
 .auth-form button:disabled {
@@ -57,7 +53,8 @@
 }
 
 .auth-form button:hover:not(:disabled) {
-    background-color: #1e3a22;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .error-message {
@@ -70,13 +67,14 @@
 }
 
 .auth-link {
-    color: #2c5530;
+    color: #2563eb;
     text-decoration: underline;
     cursor: pointer;
+    font-weight: 600;
 }
 
 .auth-link:hover {
-    color: #1e3a22;
+    color: #1e40af;
 }
 
 .auth-container {
@@ -100,14 +98,14 @@
 .auth-form h2 {
     text-align: center;
     margin-bottom: 1.5rem;
-    color: #2c5530;
+    color: #2563eb;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: bold;
-    color: #333;
+    color: #1e40af;
 }
 
 .form-group input {

@@ -17,6 +17,16 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         navigate('/');
     };
 
+    const handleProfileClick = () => {
+        navigate('/profile');
+        setIsOpen(false);
+    };
+
+    const handleSettingsClick = () => {
+        navigate('/settings');
+        setIsOpen(false);
+    };
+
     return (
         <div className="user-profile">
             <div className="user-menu" onClick={() => setIsOpen(!isOpen)}>
@@ -33,11 +43,16 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                         <br />
                         {user.email}
                     </div>
-                    <button
-                        className="logout-btn"
-                        onClick={handleLogout}
-                    >
-                        Abmelden
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item" onClick={handleProfileClick}>
+                        👤 Mein Profil
+                    </button>
+                    <button className="dropdown-item" onClick={handleSettingsClick}>
+                        ⚙️ Einstellungen
+                    </button>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item logout-btn" onClick={handleLogout}>
+                        🚪 Abmelden
                     </button>
                 </div>
             )}

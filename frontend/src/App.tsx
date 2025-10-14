@@ -4,6 +4,8 @@ import Booking from "./views/Booking.tsx";
 import MainPage from "./views/MainPage.tsx";
 import Login from "./views/Login.tsx";
 import Register from "./views/Register.tsx";
+import Profile from "./views/Profile.tsx";
+import Settings from "./views/Settings.tsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -52,6 +54,14 @@ function App() {
                 <Route
                     path="/register"
                     element={<Register onAuthSuccess={handleAuthSuccess} />}
+                />
+                <Route
+                    path="/profile"
+                    element={<Profile />}
+                />
+                <Route
+                    path="/settings"
+                    element={<Settings />}
                 />
             </Routes>
         </Router>
