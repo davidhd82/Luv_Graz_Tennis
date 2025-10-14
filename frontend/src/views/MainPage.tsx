@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import '../css/MainPage.css';
 import { useNavigate, Outlet } from 'react-router-dom';
 
+import UserProfile from './UserProfile';
+
 import tcLuv02 from '../assets/tc_luv02.jpg';
 import tcLuv05 from '../assets/tc_luv05-1024x768.jpg';
 import tcluv01 from '../assets/tcluv_01-1024x768.jpg';
@@ -52,19 +54,26 @@ function MainPage() {
                 <div className="header-content">
                     <div className="header-top">
                         <h2 className="club-title">TC LUV Graz</h2>
-                        <div className="header-actions">
+                    </div>
+
+                    <nav className="full-width-nav">
+                        <a href="#regionen" className="nav-link">Regionen</a>
+                        <a href="https://venuzle.at/anbieter-typ/sportstaetten/" className="nav-link">Sportstätten</a>
+                        <a href="https://venuzle.at/anbieter-typ/kurse/" className="nav-link">Kurse & Camps</a>
+
+                        <div className="nav-auth-section">
                             {isLoggedIn ? (
                                 <UserProfile user={user} onLogout={handleLogout} />
                             ) : (
-                                <div className="auth-buttons">
+                                <div className="nav-auth-buttons">
                                     <button
-                                        className="login-btn"
+                                        className="nav-login-btn"
                                         onClick={() => navigate('/login')}
                                     >
                                         Anmelden
                                     </button>
                                     <button
-                                        className="register-btn"
+                                        className="nav-register-btn"
                                         onClick={() => navigate('/register')}
                                     >
                                         Registrieren
@@ -72,16 +81,6 @@ function MainPage() {
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    <div className="header-top">
-                        <h2 className="club-title">TC LUV Graz</h2>
-                    </div>
-
-                    <nav className="full-width-nav">
-                        <a href="#regionen" className="nav-link">Regionen</a>
-                        <a href="https://venuzle.at/anbieter-typ/sportstaetten/" className="nav-link">Sportstätten</a>
-                        <a href="https://venuzle.at/anbieter-typ/kurse/" className="nav-link">Kurse & Camps</a>
                     </nav>
                 </div>
             </header>
