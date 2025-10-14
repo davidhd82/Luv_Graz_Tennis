@@ -2,28 +2,25 @@ package at.htlkaindorf.backend.services;
 
 import at.htlkaindorf.backend.dtos.LoginRequest;
 import at.htlkaindorf.backend.dtos.RegisterRequest;
-import at.htlkaindorf.backend.dtos.AuthResponse;
+import at.htlkaindorf.backend.dtos.AuthResponseDto;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.mapper.UserMapper;
 import at.htlkaindorf.backend.repositories.UserRepository;
 import at.htlkaindorf.backend.utils.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    public AuthResponse register(RegisterRequest request) {
-
+    public AuthResponseDto register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists!");
         }
@@ -33,29 +30,21 @@ public class AuthService {
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-
         user.setPostalCode(request.getPostalCode());
         user.setCity(request.getCity());
         user.setStreet(request.getStreet());
         user.setMobile(request.getMobile());
         user.setSalutation(request.getSalutation());
         user.setTitle(request.getTitle());
-
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
-
-        AuthResponse response = new AuthResponse();
+        AuthResponseDto response = userMapper.toAuthDTO(user);
         response.setToken(token);
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-
         return response;
     }
 
-
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponseDto login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -64,12 +53,8 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
-
-        AuthResponse response = new AuthResponse();
+        AuthResponseDto response = userMapper.toAuthDTO(user);
         response.setToken(token);
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
         return response;
     }
 }
