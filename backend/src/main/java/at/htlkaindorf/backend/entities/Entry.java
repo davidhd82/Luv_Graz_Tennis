@@ -12,20 +12,14 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@IdClass(EntryId.class)
 public class Entry {
 
-    @Id
-    private LocalDate entryDate;
-
-    @Id
-    private Integer startHour;
-
-    @Id
-    private Long tennisCourtId;
+    @EmbeddedId
+    private EntryId entryId;
 
     @ManyToOne
-    @JoinColumn(name = "tennisCourtId")
+    @MapsId("tennisCourtId")
+    @JoinColumn(name = "tennis_court_id", nullable = false)
     private TennisCourt tennisCourt;
 
     @ManyToOne
