@@ -19,9 +19,12 @@ public class EntryController {
 
     private final EntryService entryService;
 
-    @GetMapping("/{date}")
-    public ResponseEntity<List<EntryDto>> getEntriesByDate(@PathVariable LocalDate date) {
-        return ResponseEntity.ok(entryService.getEntriesByDate(date));
+    @GetMapping("/{courtId}/{date}")
+    public ResponseEntity<List<EntryDto>> getEntriesByDateAndCourt(
+            @PathVariable Long courtId,
+            @PathVariable LocalDate date) {
+
+        return ResponseEntity.ok(entryService.getEntriesByDateAndCourt(date, courtId));
     }
 
     @PostMapping
