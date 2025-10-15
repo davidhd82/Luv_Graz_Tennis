@@ -11,10 +11,11 @@ const hours = [
 ];
 
 interface EntryDto {
-    id: number;
-    courtId: number;
-    date: string;
-    hour: number;
+    entryDate: string;
+    startHour: number;
+    tennisCourtId: number;
+    tennisCourtName: string;
+    entryTypeName: string;
     userEmail: string;
 }
 
@@ -37,7 +38,6 @@ export default function BookingPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
 
-    // Prüfe ob User eingeloggt ist
     useEffect(() => {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
@@ -64,11 +64,9 @@ export default function BookingPage() {
         return `${year}-${month}-${day}`;
     };
 
-    const totalCourts = 5;
     const courts = [1, 2, 3, 4, 5];
 
-    // API: Buchungen für ein bestimmtes Datum abrufen
-    const fetchEntriesForDate = async (date: Date) => {
+    const fetchEntriesForCourtAndDate = async (courtId: number, date: Date) => {
         try {
             setLoading(true);
             setError(null);
@@ -81,9 +79,9 @@ export default function BookingPage() {
                 return;
             }
 
-            console.log('🔄 Lade Buchungen für:', dateKey);
+            console.log(`🔄 Lade Buchungen für Platz ${courtId} am ${dateKey}`);
 
-            const response = await fetch(`http://localhost:8080/api/entries/${dateKey}`, {
+            const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -103,16 +101,16 @@ export default function BookingPage() {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('❌ API Fehler:', errorText);
+                console.error('API Fehler:', errorText);
                 throw new Error('Fehler beim Laden der Buchungen: ' + response.status);
             }
 
             const entries: EntryDto[] = await response.json();
-            console.log('✅ Geladene Buchungen:', entries);
+            console.log(`Geladene Buchungen für Platz ${courtId}:`, entries);
             setBookedEntries(entries);
 
         } catch (err: any) {
-            console.error('❌ Error fetching entries:', err);
+            console.error('Error fetching entries:', err);
             setError(err.message);
             setBookedEntries([]);
         } finally {
@@ -120,7 +118,6 @@ export default function BookingPage() {
         }
     };
 
-    // API: Neue Buchung erstellen
     const createBooking = async (tennisCourtId: number, entryDate: string, startHour: number) => {
         try {
             const token = localStorage.getItem('token');
@@ -134,6 +131,8 @@ export default function BookingPage() {
                 tennisCourtId: tennisCourtId,
                 entryTypeId: 1
             };
+
+            console.log('📤 Sende Buchungsrequest:', request);
 
             const response = await fetch('http://localhost:8080/api/entries', {
                 method: 'POST',
@@ -154,24 +153,28 @@ export default function BookingPage() {
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('Buchung Fehler:', errorText);
                 throw new Error(errorText || 'Buchung fehlgeschlagen');
             }
 
             const result = await response.json();
+            console.log('Buchung erfolgreich:', result);
             return result;
 
         } catch (err: any) {
+            console.error('Error in createBooking:', err);
             throw new Error(err.message);
         }
     };
 
-    // API: Buchung löschen
     const deleteBooking = async (courtId: number, date: string, hour: number) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('Nicht eingeloggt');
             }
+
+            console.log(`Lösche Buchung: Platz ${courtId}, ${date}, ${hour}:00`);
 
             const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
                 method: 'DELETE',
@@ -192,99 +195,65 @@ export default function BookingPage() {
                 throw new Error('Löschen fehlgeschlagen');
             }
 
+            console.log('Buchung erfolgreich gelöscht');
+
         } catch (err: any) {
+            console.error('Error in deleteBooking:', err);
             throw new Error(err.message);
         }
     };
 
-    // Buchungen laden wenn Datum ausgewählt wird
     useEffect(() => {
-        if (selectedDate && isAuthenticated) {
-            fetchEntriesForDate(selectedDate);
+        if (selectedDate && selectedCourt && isAuthenticated) {
+            console.log('Platz und Datum ausgewählt, lade Buchungen...');
+            fetchEntriesForCourtAndDate(selectedCourt, selectedDate);
         } else {
+            console.log('Kein Platz/Datum ausgewählt, leere Buchungen');
             setBookedEntries([]);
         }
-    }, [selectedDate, isAuthenticated]);
+    }, [selectedDate, selectedCourt, isAuthenticated]);
 
-    // KORRIGIERT: Prüft ob ein bestimmter Platz zu einer bestimmten Zeit belegt ist (durch irgendjemanden)
-    const isCourtBooked = (courtId: number, time: string) => {
-        if (!selectedDate) return false;
+    const isTimeBooked = (time: string) => {
+        if (!selectedDate || !selectedCourt) return false;
 
         const hour = parseInt(time.split(':')[0]);
-        const dateKey = formatDateKey(selectedDate);
+
+        console.log('🔍 Prüfe ob Zeit gebucht ist:', {
+            time,
+            hour,
+            selectedCourt,
+            bookedEntries: bookedEntries.map(e => ({ court: e.tennisCourtId, hour: e.startHour }))
+        });
 
         const isBooked = bookedEntries.some(entry =>
-            entry.courtId === courtId &&
-            entry.date === dateKey &&
-            entry.hour === hour
+            entry.tennisCourtId === selectedCourt &&
+            entry.startHour === hour
         );
 
+        console.log(`⏰ Zeit ${time} ist ${isBooked ? 'GEBUCHT' : 'FREI'}`);
         return isBooked;
     };
 
-    // NEU: Prüft ob der aktuelle Benutzer diesen Slot gebucht hat
-    const isMyBooking = (courtId: number, time: string) => {
-        if (!selectedDate || !currentUserEmail) return false;
+    const isMyBooking = (time: string) => {
+        if (!selectedDate || !selectedCourt || !currentUserEmail) return false;
 
         const hour = parseInt(time.split(':')[0]);
-        const dateKey = formatDateKey(selectedDate);
 
         const myBooking = bookedEntries.some(entry =>
-            entry.courtId === courtId &&
-            entry.date === dateKey &&
-            entry.hour === hour &&
+            entry.tennisCourtId === selectedCourt &&
+            entry.startHour === hour &&
             entry.userEmail === currentUserEmail
         );
 
+        console.log(`👤 Zeit ${time} ist ${myBooking ? 'MEINE Buchung' : 'nicht meine'}`);
         return myBooking;
     };
 
-    // Prüft ob ein Platz für ein Datum komplett ausgebucht ist
-    const isCourtFullyBooked = (courtId: number) => {
-        return hours.every(time => isCourtBooked(courtId, time));
-    };
-
-    // Verfügbare Plätze für das ausgewählte Datum
-    const availableCourts = selectedDate
-        ? courts.map((court) => {
-            const disabled = isCourtFullyBooked(court);
-            return {
-                court: court,
-                disabled: disabled
-            };
-        })
-        : [];
-
-    // VERBESSERT: Verfügbare Zeiten für ausgewählten Platz und Datum
-    const availableTimes = selectedDate && selectedCourt
-        ? hours.map((time) => {
-            const booked = isCourtBooked(selectedCourt, time);
-            const myBooking = isMyBooking(selectedCourt, time);
-
-            return {
-                time: time,
-                disabled: booked && !myBooking, // Nur disabled wenn von jemand anderem gebucht
-                isMyBooking: myBooking
-            };
-        })
-        : [];
-
-    // NEU: Eigene Buchungen für das ausgewählte Datum filtern
-    const myBookings = selectedDate && currentUserEmail
+    const myBookings = selectedDate && selectedCourt && currentUserEmail
         ? bookedEntries.filter(entry =>
-            entry.date === formatDateKey(selectedDate) &&
             entry.userEmail === currentUserEmail
         )
         : [];
-
-    const tileClassName = ({ date, view }: { date: Date; view: string }) => {
-        if (view === 'month') {
-            const dateKey = formatDateKey(date);
-            const hasBookings = bookedEntries.some(entry => entry.date === dateKey);
-            return hasBookings ? "partially-booked" : "";
-        }
-        return "";
-    };
 
     const handleBooking = async () => {
         if (!selectedDate || !selectedCourt || !selectedTime) return;
@@ -300,15 +269,19 @@ export default function BookingPage() {
             const startHour = parseInt(selectedTime.split(':')[0]);
             const entryDate = formatDateKey(selectedDate);
 
+            console.log('🚀 Starte Buchung mit:', {
+                tennisCourtId: selectedCourt,
+                entryDate,
+                startHour
+            });
+
             await createBooking(selectedCourt, entryDate, startHour);
 
-            setTimeout(async () => {
-                await fetchEntriesForDate(selectedDate);
-            }, 500);
+            console.log('🔄 Lade Buchungen nach Buchung neu...');
+            await fetchEntriesForCourtAndDate(selectedCourt, selectedDate);
 
-            alert(`✅ Buchung erfolgreich!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
+            alert(`Buchung erfolgreich!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
 
-            setSelectedCourt(null);
             setSelectedTime(null);
 
         } catch (err: any) {
@@ -325,9 +298,11 @@ export default function BookingPage() {
             const dateKey = formatDateKey(date);
 
             await deleteBooking(courtId, dateKey, hour);
-            await fetchEntriesForDate(selectedDate!);
 
-            alert('✅ Buchung erfolgreich gelöscht!');
+            console.log('🔄 Lade Buchungen nach Löschung neu...');
+            await fetchEntriesForCourtAndDate(selectedCourt!, selectedDate!);
+
+            alert('Buchung erfolgreich gelöscht!');
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -340,7 +315,12 @@ export default function BookingPage() {
     };
 
     const handleTimeClick = (time: string, disabled: boolean) => {
-        if (disabled) return;
+        console.log('🖱️ Zeit geklickt:', { time, disabled });
+
+        if (disabled) {
+            console.log('Zeit ist gebucht - nicht klickbar');
+            return;
+        }
 
         if (!isAuthenticated) {
             setError('Bitte anmelden um eine Zeit auszuwählen');
@@ -352,8 +332,8 @@ export default function BookingPage() {
         setError(null);
     };
 
-    const handleCourtClick = (court: number, disabled: boolean) => {
-        if (disabled) return;
+    const handleCourtClick = (court: number) => {
+        console.log('🖱️ Platz geklickt:', court);
 
         if (!isAuthenticated) {
             setError('Bitte anmelden um einen Platz auszuwählen');
@@ -410,79 +390,56 @@ export default function BookingPage() {
                 </div>
             )}
 
-            {/* Schritt 1: Datum auswählen */}
             <section className="calendar-section">
                 <h2>1. Wähle ein Datum</h2>
-                <p className="section-info">
-                    Tage mit Buchungen sind <span className="partially-booked-demo">orange markiert</span>
-                </p>
                 <Calendar
                     onChange={(date) => {
+                        console.log('📅 Datum ausgewählt:', date);
                         setSelectedDate(date as Date);
                         setSelectedCourt(null);
                         setSelectedTime(null);
+                        setBookedEntries([]);
                         setError(null);
                     }}
                     value={selectedDate}
                     minDate={new Date()}
-                    tileClassName={tileClassName}
                 />
                 {selectedDate && (
                     <p className="selected-date-info">
                         Ausgewählt: <strong>{selectedDate.toLocaleDateString("de-DE")}</strong>
-                        {isAuthenticated && (
-                            <span> • {bookedEntries.length} Buchung(en) geladen</span>
-                        )}
                     </p>
                 )}
             </section>
 
-            {/* Schritt 2: Tennisplatz auswählen (nur wenn Datum ausgewählt) */}
             {selectedDate && (
                 <section className="slots">
                     <h2>2. Wähle einen Tennisplatz</h2>
-                    <p className="section-info">
-                        Wähle einen verfügbaren Platz für {selectedDate.toLocaleDateString("de-DE")}
-                    </p>
                     <div className="slots-grid courts-grid">
-                        {availableCourts.map((courtInfo) => (
+                        {courts.map((court) => (
                             <button
-                                key={courtInfo.court}
+                                key={court}
                                 className={`slot-btn court-btn ${
-                                    courtInfo.disabled
-                                        ? "disabled"
-                                        : selectedCourt === courtInfo.court
-                                            ? "selected"
-                                            : ""
+                                    selectedCourt === court ? "selected" : ""
                                 }`}
-                                onClick={() => handleCourtClick(courtInfo.court, courtInfo.disabled)}
-                                disabled={courtInfo.disabled}
+                                onClick={() => handleCourtClick(court)}
                             >
-                                <span className="court-number">Platz {courtInfo.court}</span>
-                                {courtInfo.disabled ? (
-                                    <div className="status-label">Ausgebucht</div>
-                                ) : (
-                                    <div className="status-label available">
-                                        Verfügbar
-                                    </div>
-                                )}
+                                <span className="court-number">Platz {court}</span>
+                                <div className="status-label available">
+                                    Verfügbar
+                                </div>
                             </button>
                         ))}
                     </div>
                 </section>
             )}
 
-            {/* Schritt 3: Uhrzeit auswählen (nur wenn Platz ausgewählt) */}
             {selectedDate && selectedCourt && (
                 <section className="slots">
-                    <h2>3. Wähle eine Uhrzeit</h2>
-                    <p className="section-info">
-                        Verfügbare Zeiten für Platz {selectedCourt} am {selectedDate.toLocaleDateString("de-DE")}
-                    </p>
+                    <h2>3. Wähle eine Uhrzeit für Platz {selectedCourt}</h2>
                     <div className="slots-grid times-grid">
                         {hours.map((time) => {
-                            const booked = isCourtBooked(selectedCourt, time);
-                            const myBooking = isMyBooking(selectedCourt, time);
+                            const booked = isTimeBooked(time);
+                            const myBooking = isMyBooking(time);
 
                             return (
                                 <button
@@ -514,7 +471,6 @@ export default function BookingPage() {
                 </section>
             )}
 
-            {/* Schritt 4: Bestätigung (nur wenn alles ausgewählt) */}
             {selectedDate && selectedCourt && selectedTime && isAuthenticated && (
                 <footer className="footer">
                     <div className="booking-summary">
@@ -535,17 +491,16 @@ export default function BookingPage() {
                 </footer>
             )}
 
-            {/* VERBESSERT: Zeigt nur die eigenen Buchungen an */}
-            {selectedDate && isAuthenticated && myBookings.length > 0 && (
+            {selectedDate && selectedCourt && isAuthenticated && myBookings.length > 0 && (
                 <section className="slots">
                     <h2>Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
                     <div className="my-bookings">
                         {myBookings.map((entry) => (
-                            <div key={`${entry.courtId}-${entry.hour}`} className="booking-item">
-                                <span>Platz {entry.courtId} • {entry.hour}:00 Uhr</span>
+                            <div key={`${entry.tennisCourtId}-${entry.startHour}`} className="booking-item">
+                                <span>Platz {entry.tennisCourtId} • {entry.startHour}:00 Uhr</span>
                                 <button
                                     className="delete-booking-btn"
-                                    onClick={() => handleDeleteBooking(entry.courtId, selectedDate, `${entry.hour}:00`)}
+                                    onClick={() => handleDeleteBooking(entry.tennisCourtId, selectedDate, `${entry.startHour}:00`)}
                                     disabled={loading}
                                 >
                                     Löschen

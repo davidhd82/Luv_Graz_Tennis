@@ -161,7 +161,6 @@ body {
 
 .slot-btn.selected,
 .slot-btn.selected .court-number,
-.slot-btn.selected .status-label,
 .slot-btn.selected .status-label.available {
     color: white !important;
 }
@@ -171,7 +170,6 @@ body {
     color: white !important;
 }
 
-/* Styling für eigene Buchungen in der Zeitauswahl */
 .slot-btn.my-booking {
     background: #dcfce7 !important;
     color: #166534 !important;
@@ -276,7 +274,6 @@ body {
     width: 100%;
     max-width: 600px;
     background: white;
-    border: none;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
     padding: 20px;
@@ -334,7 +331,6 @@ body {
     border: 2px solid transparent;
     background: #f0f9ff;
     color: #2563eb;
-    border: none;
     height: 44px;
 }
 
@@ -485,6 +481,7 @@ body {
     align-items: center;
     padding: 12px 16px;
     background: #f8fafc;
+    color:black;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
 }
@@ -517,7 +514,6 @@ body {
     font-weight: bold;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .page {
         padding: 15px;
@@ -576,22 +572,6 @@ body {
     pointer-events: none;
     position: relative;
     overflow: hidden;
-}
-
-.slot-btn.disabled::before {
-    content: "BELEGT";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #dc2626;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2px 6px;
-    border-radius: 4px;
-    z-index: 2;
-    white-space: nowrap;
 }
 
 .slot-btn.disabled::after {
