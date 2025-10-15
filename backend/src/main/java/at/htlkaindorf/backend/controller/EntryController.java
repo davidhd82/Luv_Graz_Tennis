@@ -4,6 +4,7 @@ import at.htlkaindorf.backend.dtos.CreateEntryRequest;
 import at.htlkaindorf.backend.dtos.EntryDto;
 import at.htlkaindorf.backend.services.EntryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/entries")
 @RequiredArgsConstructor
+@Slf4j
 public class EntryController {
 
     private final EntryService entryService;
@@ -24,6 +26,7 @@ public class EntryController {
 
     @PostMapping
     public ResponseEntity<EntryDto> createEntry(@RequestBody CreateEntryRequest request) {
+        log.info(request.toString());
         return ResponseEntity.ok(entryService.createEntry(request));
     }
 
