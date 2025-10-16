@@ -28,9 +28,9 @@ public class EntryService {
     private final UserService userService;
     private final EntryMapper entryMapper;
 
-    public List<EntryDto> getEntriesByDate(LocalDate date) {
-        return entryRepository.findAll().stream()
-                .filter(e -> e.getEntryId().getEntryDate().equals(date))
+    public List<EntryDto> getEntriesByDateAndCourt(LocalDate date, Long courtId) {
+        return entryRepository.findAllByEntryId_EntryDateAndTennisCourt_TennisCourtId(date, courtId)
+                .stream()
                 .map(entryMapper::toDto)
                 .collect(Collectors.toList());
     }

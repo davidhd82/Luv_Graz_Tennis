@@ -90,7 +90,6 @@ export default function Settings() {
             setUser(updatedUser);
             setSuccess('Profil erfolgreich aktualisiert!');
 
-            // Lokale Benutzerdaten aktualisieren
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const userObj = JSON.parse(storedUser);

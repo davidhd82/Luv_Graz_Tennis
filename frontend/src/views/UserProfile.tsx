@@ -45,14 +45,14 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                     </div>
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item" onClick={handleProfileClick}>
-                        👤 Mein Profil
+                        Mein Profil
                     </button>
                     <button className="dropdown-item" onClick={handleSettingsClick}>
-                        ⚙️ Einstellungen
+                        ⚙Einstellungen
                     </button>
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item logout-btn" onClick={handleLogout}>
-                        🚪 Abmelden
+                        Abmelden
                     </button>
                 </div>
             )}

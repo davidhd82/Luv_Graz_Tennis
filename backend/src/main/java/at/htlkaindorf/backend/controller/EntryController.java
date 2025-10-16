@@ -4,6 +4,7 @@ import at.htlkaindorf.backend.dtos.CreateEntryRequest;
 import at.htlkaindorf.backend.dtos.EntryDto;
 import at.htlkaindorf.backend.services.EntryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,17 +14,22 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/entries")
 @RequiredArgsConstructor
+@Slf4j
 public class EntryController {
 
     private final EntryService entryService;
 
-    @GetMapping("/{date}")
-    public ResponseEntity<List<EntryDto>> getEntriesByDate(@PathVariable LocalDate date) {
-        return ResponseEntity.ok(entryService.getEntriesByDate(date));
+    @GetMapping("/{courtId}/{date}")
+    public ResponseEntity<List<EntryDto>> getEntriesByDateAndCourt(
+            @PathVariable Long courtId,
+            @PathVariable LocalDate date) {
+
+        return ResponseEntity.ok(entryService.getEntriesByDateAndCourt(date, courtId));
     }
 
     @PostMapping
     public ResponseEntity<EntryDto> createEntry(@RequestBody CreateEntryRequest request) {
+        log.info(request.toString());
         return ResponseEntity.ok(entryService.createEntry(request));
     }
 
