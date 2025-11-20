@@ -118,13 +118,12 @@
     background-color: #fff;
 }
 
-/* Email Verification Styles */
 .verification-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); /* Blauer Gradient */
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
     padding: 2rem;
 }
 
@@ -144,7 +143,7 @@
 }
 
 .verification-card h1 {
-    color: #2563eb; /* Dunkelblau statt grün */
+    color: #2563eb;
     margin-bottom: 1.5rem;
     font-size: 1.8rem;
 }
@@ -161,7 +160,7 @@
 }
 
 .verification-message strong {
-    color: #2563eb; /* Hervorgehobene Email in Blau */
+    color: #2563eb;
 }
 
 .verification-actions {
@@ -182,12 +181,12 @@
 }
 
 .check-button {
-    background: #2563eb; /* Blau statt grün */
+    background: #2563eb;
     color: white;
 }
 
 .check-button:hover:not(:disabled) {
-    background: #1d4ed8; /* Dunkleres Blau für Hover */
+    background: #1d4ed8;
 }
 
 .check-button:disabled {
@@ -196,12 +195,12 @@
 }
 
 .resend-button {
-    background: #f59e0b; /* Orange/Amber für Kontrast */
+    background: #f59e0b;
     color: white;
 }
 
 .resend-button:hover:not(.disabled):not(:disabled) {
-    background: #d97706; /* Dunkleres Orange für Hover */
+    background: #d97706;
 }
 
 .resend-button.disabled,
@@ -219,7 +218,7 @@
 }
 
 .verification-help h3 {
-    color: #2563eb; /* Blau statt grün */
+    color: #2563eb;
     margin-bottom: 1rem;
 }
 
@@ -237,13 +236,13 @@
 
 .verification-help li:before {
     content: "•";
-    color: #2563eb; /* Blau statt grün */
+    color: #2563eb;
     position: absolute;
     left: 0;
 }
 
 .verification-help a {
-    color: #f59e0b; /* Orange für Links */
+    color: #f59e0b;
     text-decoration: none;
 }
 
@@ -257,8 +256,8 @@
 
 .back-to-login {
     background: none;
-    border: 2px solid #2563eb; /* Blau statt grün */
-    color: #2563eb; /* Blau statt grün */
+    border: 2px solid #2563eb;
+    color: #2563eb;
     padding: 0.8rem 1.5rem;
     border-radius: 5px;
     cursor: pointer;
@@ -267,12 +266,12 @@
 }
 
 .back-to-login:hover {
-    background: #2563eb; /* Blau statt grün */
+    background: #2563eb;
     color: white;
 }
 
 .verification-notice {
-    background: #dbeafe; /* Hellblauer Hintergrund */
+    background: #dbeafe;
     padding: 1rem;
     border-radius: 5px;
     margin: 1rem 0;

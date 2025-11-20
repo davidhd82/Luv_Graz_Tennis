@@ -157,7 +157,6 @@ export default function EmailVerificationPending() {
                     <ul>
                         <li>Überprüfen Sie Ihren Spam-Ordner</li>
                         <li>Stellen Sie sicher, dass die E-Mail-Adresse korrekt ist: {email}</li>
-                        <li>Kontaktieren Sie uns unter <a href="mailto:support@tcluv-graz.at">support@tcluv-graz.at</a></li>
                     </ul>
                 </div>
 

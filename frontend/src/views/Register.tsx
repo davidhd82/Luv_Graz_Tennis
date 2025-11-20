@@ -68,7 +68,6 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                 throw new Error(errorData.message || 'Registrierung fehlgeschlagen');
             }
 
-            // Erfolgreiche Registrierung - zur Verifizierungsseite navigieren
             localStorage.setItem('pendingVerificationEmail', formData.email);
             navigate('/verify-pending', {
                 state: {
@@ -92,7 +91,7 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                 <form onSubmit={handleRegister}>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Anrede:</label>
+                            <label htmlFor="salutation">Anrede:</label>
                             <select
                                 name="salutation"
                                 value={formData.salutation}
@@ -104,8 +103,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                             </select>
                         </div>
                         <div className="form-group">
-                            <label>Titel:</label>
+                            <label htmlFor="title">Titel:</label>
                             <input
+                                id="title"
                                 type="text"
                                 name="title"
                                 value={formData.title}
@@ -117,8 +117,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Vorname:*</label>
+                            <label htmlFor="firstName">Vorname:*</label>
                             <input
+                                id="firstName"
                                 type="text"
                                 name="firstName"
                                 value={formData.firstName}
@@ -127,8 +128,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Nachname:*</label>
+                            <label htmlFor="lastName">Nachname:*</label>
                             <input
+                                id="lastName"
                                 type="text"
                                 name="lastName"
                                 value={formData.lastName}
@@ -139,8 +141,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                     </div>
 
                     <div className="form-group">
-                        <label>E-Mail:*</label>
+                        <label htmlFor="email">E-Mail:*</label>
                         <input
+                            id="email"
                             type="email"
                             name="email"
                             value={formData.email}
@@ -151,8 +154,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Passwort:*</label>
+                            <label htmlFor="password">Passwort:*</label>
                             <input
+                                id="password"
                                 type="password"
                                 name="password"
                                 value={formData.password}
@@ -161,8 +165,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Passwort bestätigen:*</label>
+                            <label htmlFor="confirmPassword">Passwort bestätigen:*</label>
                             <input
+                                id="confirmPassword"
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
@@ -173,8 +178,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                     </div>
 
                     <div className="form-group">
-                        <label>Straße und Hausnummer:</label>
+                        <label htmlFor="street">Straße und Hausnummer:</label>
                         <input
+                            id="street"
                             type="text"
                             name="street"
                             value={formData.street}
@@ -184,8 +190,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Postleitzahl:</label>
+                            <label htmlFor="postalCode">Postleitzahl:</label>
                             <input
+                                id="postalCode"
                                 type="text"
                                 name="postalCode"
                                 value={formData.postalCode}
@@ -193,8 +200,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                             />
                         </div>
                         <div className="form-group">
-                            <label>Stadt:</label>
+                            <label htmlFor="city">Stadt:</label>
                             <input
+                                id="city"
                                 type="text"
                                 name="city"
                                 value={formData.city}
@@ -204,8 +212,9 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                     </div>
 
                     <div className="form-group">
-                        <label>Mobiltelefon:</label>
+                        <label htmlFor="mobile">Mobiltelefon:</label>
                         <input
+                            id="mobile"
                             type="tel"
                             name="mobile"
                             value={formData.mobile}
