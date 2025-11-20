@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,4 +48,10 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Entry> entries = new ArrayList<>();
+
+    @Column(nullable = false)
+    private boolean enabled = false;
+
+    private String verificationToken;
+    private LocalDateTime tokenExpiryDate;
 }
