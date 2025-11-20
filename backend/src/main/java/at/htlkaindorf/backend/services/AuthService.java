@@ -73,4 +73,8 @@ public class AuthService {
                 user.getLastName()
         );
     }
+
+    public String generateVerificationToken() {
+        return UUID.randomUUID().toString();
+    }
 }

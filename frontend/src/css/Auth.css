@@ -117,3 +117,170 @@
     color: #333;
     background-color: #fff;
 }
+
+/* Email Verification Styles */
+.verification-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); /* Blauer Gradient */
+    padding: 2rem;
+}
+
+.verification-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+}
+
+.verification-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+.verification-card h1 {
+    color: #2563eb; /* Dunkelblau statt grün */
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+}
+
+.verification-message {
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.verification-message p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.verification-message strong {
+    color: #2563eb; /* Hervorgehobene Email in Blau */
+}
+
+.verification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.check-button, .resend-button {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.check-button {
+    background: #2563eb; /* Blau statt grün */
+    color: white;
+}
+
+.check-button:hover:not(:disabled) {
+    background: #1d4ed8; /* Dunkleres Blau für Hover */
+}
+
+.check-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.resend-button {
+    background: #f59e0b; /* Orange/Amber für Kontrast */
+    color: white;
+}
+
+.resend-button:hover:not(.disabled):not(:disabled) {
+    background: #d97706; /* Dunkleres Orange für Hover */
+}
+
+.resend-button.disabled,
+.resend-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.verification-help {
+    text-align: left;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.verification-help h3 {
+    color: #2563eb; /* Blau statt grün */
+    margin-bottom: 1rem;
+}
+
+.verification-help ul {
+    list-style: none;
+    padding: 0;
+}
+
+.verification-help li {
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+    color: #333;
+}
+
+.verification-help li:before {
+    content: "•";
+    color: #2563eb; /* Blau statt grün */
+    position: absolute;
+    left: 0;
+}
+
+.verification-help a {
+    color: #f59e0b; /* Orange für Links */
+    text-decoration: none;
+}
+
+.verification-help a:hover {
+    text-decoration: underline;
+}
+
+.verification-footer {
+    margin-top: 2rem;
+}
+
+.back-to-login {
+    background: none;
+    border: 2px solid #2563eb; /* Blau statt grün */
+    color: #2563eb; /* Blau statt grün */
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.back-to-login:hover {
+    background: #2563eb; /* Blau statt grün */
+    color: white;
+}
+
+.verification-notice {
+    background: #dbeafe; /* Hellblauer Hintergrund */
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.verification-notice p {
+    margin: 0;
+    color: #2563eb;
+    font-size: 0.9rem;
+}

@@ -67,16 +67,16 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                 throw new Error(errorData.message || 'Registrierung fehlgeschlagen');
             }
 
-            const data = await response.json();
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify({
-                email: data.email,
-                firstName: data.firstName,
-                lastName: data.lastName
-            }));
+            // Erfolgreiche Registrierung - zur Verifizierungsseite navigieren
+            localStorage.setItem('pendingVerificationEmail', formData.email);
+            navigate('/verify-pending', {
+                state: {
+                    email: formData.email,
+                    firstName: formData.firstName,
+                    lastName: formData.lastName
+                }
+            });
 
-            onAuthSuccess(data.token, data);
-            navigate('/');
         } catch (err: any) {
             setError(err.message || 'Registrierung fehlgeschlagen');
         } finally {
@@ -214,6 +214,11 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                     </div>
 
                     {error && <div className="error-message">{error}</div>}
+
+                    <div className="verification-notice">
+                        <p>Nach der Registrierung erhalten Sie eine E-Mail zur Bestätigung Ihres Kontos.</p>
+                    </div>
+
                     <button type="submit" disabled={loading}>
                         {loading ? 'Lädt...' : 'Registrieren'}
                     </button>
@@ -221,8 +226,8 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
                 <p>
                     Bereits ein Konto?{' '}
                     <span className="auth-link" onClick={() => navigate('/login')}>
-            Anmelden
-          </span>
+                        Anmelden
+                    </span>
                 </p>
             </div>
         </div>
