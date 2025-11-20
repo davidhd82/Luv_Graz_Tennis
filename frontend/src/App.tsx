@@ -6,6 +6,7 @@ import Login from "./views/Login.tsx";
 import Register from "./views/Register.tsx";
 import Profile from "./views/Profile.tsx";
 import Settings from "./views/Settings.tsx";
+import EmailVerificationPending from "./views/EmailVerificationPending.tsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,33 +37,17 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route
-                    path="/"
-                    element={
-                        <MainPage
-                            isLoggedIn={isLoggedIn}
-                            user={user}
-                            onLogout={handleLogout}
-                        />
+                <Route path="/" element={
+                        <MainPage isLoggedIn={isLoggedIn} user={user} onLogout={handleLogout}/>
                     }
                 />
                 <Route path="/booking" element={<Booking />} />
-                <Route
-                    path="/login"
-                    element={<Login onAuthSuccess={handleAuthSuccess} />}
-                />
-                <Route
-                    path="/register"
-                    element={<Register onAuthSuccess={handleAuthSuccess} />}
-                />
-                <Route
-                    path="/profile"
-                    element={<Profile />}
-                />
-                <Route
-                    path="/settings"
-                    element={<Settings />}
-                />
+                <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />}/>
+                <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} />}/>
+                <Route path="/profile" element={<Profile />}/>
+                <Route path="/settings" element={<Settings />}/>
+                <Route path="/verify-pending" element={<EmailVerificationPending />} />
+
             </Routes>
         </Router>
     );
