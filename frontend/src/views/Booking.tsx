@@ -81,7 +81,8 @@ export default function BookingPage() {
 
             console.log(`🔄 Lade Buchungen für Platz ${courtId} am ${dateKey}`);
 
-            const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
+            //const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
+            const response = await fetch(`https://kainhaus.uber.space/api/entries/${courtId}/${dateKey}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -134,7 +135,8 @@ export default function BookingPage() {
 
             console.log('📤 Sende Buchungsrequest:', request);
 
-            const response = await fetch('http://localhost:8080/api/entries', {
+            //const response = await fetch('http://localhost:8080/api/entries', {
+            const response = await fetch('https://kainhaus.uber.space/api/entries', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -176,7 +178,10 @@ export default function BookingPage() {
 
             console.log(`Lösche Buchung: Platz ${courtId}, ${date}, ${hour}:00`);
 
-            const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
+
+            // const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
+            const response = await fetch(`https://kainhaus.uber.space/api/entries/${courtId}/${date}/${hour}`, {
+
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
