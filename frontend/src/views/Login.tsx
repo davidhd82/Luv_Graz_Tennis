@@ -54,8 +54,9 @@ export default function Login({ onAuthSuccess }: LoginProps) {
                 <h2>Anmelden</h2>
                 <form onSubmit={handleLogin}>
                     <div className="form-group">
-                        <label>E-Mail:</label>
+                        <label htmlFor="email">E-Mail:</label>
                         <input
+                            id="email"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -63,13 +64,15 @@ export default function Login({ onAuthSuccess }: LoginProps) {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Passwort:</label>
+                        <label htmlFor="password">Passwort:</label>
                         <input
+                            id="password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
+
                     </div>
                     {error && <div className="error-message">{error}</div>}
                     <button type="submit" disabled={loading}>
