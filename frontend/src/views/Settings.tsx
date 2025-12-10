@@ -36,7 +36,8 @@ export default function Settings() {
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            //const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch('https://kainhaus.uber.space/api/user/me', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -73,7 +74,8 @@ export default function Settings() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8080/api/user/update', {
+            //const response = await fetch('http://localhost:8080/api/user/update', {
+            const response = await fetch('https://kainhaus.uber.space/api/user/update', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

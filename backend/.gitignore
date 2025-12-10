@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignore IntelliJ workspace-specific files
+.idea/dataSources.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+.idea/copilot.data.migration.ask.xml
+.idea/copilot.data.migration.ask2agent.xml
+.idea/copilot.data.migration.edit.xml

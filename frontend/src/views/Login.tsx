@@ -19,7 +19,8 @@ export default function Login({ onAuthSuccess }: LoginProps) {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            //const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch('https://kainhaus.uber.space/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
