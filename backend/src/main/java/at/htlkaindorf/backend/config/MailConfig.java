@@ -14,15 +14,20 @@ public class MailConfig {
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
 
-        sender.setHost("sandbox.smtp.mailtrap.io");
+        sender.setHost("smtp.gmail.com");
         sender.setPort(587);
-        sender.setUsername("8b26297fefda17");
-        sender.setPassword("e5dd4379d2ef87");
+        sender.setUsername("clemens.muenzer@gmail.com");
+        sender.setPassword("undcetuurpbxkafg");
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+        props.put("mail.smtp.writetimeout", "5000");
+
         return sender;
     }
 }
