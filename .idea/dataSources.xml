@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="tenniscourtDB@localhost" uuid="4201c575-6694-443a-ad43-871ed773a6d9">
+    <data-source source="LOCAL" name="tenniscourtdb@localhost" uuid="98e8aab2-3ff6-4796-baf3-bb75d3367d18">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/tenniscourtDB</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5432/tenniscourtdb</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />

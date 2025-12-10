@@ -43,6 +43,8 @@ public class AuthService {
         user.setEnabled(false);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setTokenExpiryDate(LocalDateTime.now().plusHours(24));
+        user.setAdmin(false);
+        user.setMembershipPaid(false);
 
         userRepository.save(user);
         emailService.sendVerificationEmail(user);
@@ -70,7 +72,8 @@ public class AuthService {
                 token,
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName()
+                user.getLastName(),
+                user.isAdmin()
         );
     }
 

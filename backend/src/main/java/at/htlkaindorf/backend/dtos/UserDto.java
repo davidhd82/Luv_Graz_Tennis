@@ -22,4 +22,6 @@ public class UserDto {
     private String title;
 
     private boolean isAdmin;
+    private boolean enabled;
+    private boolean membershipPaid;
 }

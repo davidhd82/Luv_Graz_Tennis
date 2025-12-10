@@ -46,6 +46,8 @@ public class User {
 
     private boolean isAdmin;
 
+    private boolean membershipPaid;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Entry> entries = new ArrayList<>();
 
