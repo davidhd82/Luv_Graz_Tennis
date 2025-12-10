@@ -24,4 +24,7 @@ public class UserDto {
     private boolean isAdmin;
     private boolean enabled;
     private boolean membershipPaid;
+
+    private int maxDailyBookingHours;
+
 }

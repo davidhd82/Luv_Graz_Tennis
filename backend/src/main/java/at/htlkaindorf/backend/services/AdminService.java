@@ -73,4 +73,14 @@ public class AdminService {
     public void deleteEntryAdmin(Long courtId, LocalDate date, Integer hour) {
         entryRepository.deleteById(new EntryId(courtId, date, hour));
     }
+
+    public UserDto updateMaxDailyBookingHours(Long id, int hours) {
+        User user = userRepository.findById(id).orElseThrow();
+        if (hours < 0) {
+            throw new RuntimeException("Hours must be >= 0");
+        }
+        user.setMaxDailyBookingHours(hours);
+        return userMapper.toUserDTO(userRepository.save(user));
+    }
+
 }

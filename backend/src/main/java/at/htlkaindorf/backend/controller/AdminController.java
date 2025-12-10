@@ -52,4 +52,11 @@ public class AdminController {
         adminService.deleteEntryAdmin(courtId, date, hour);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/users/{id}/booking-hours")
+    public ResponseEntity<UserDto> updateBookingHours(@PathVariable Long id,
+                                                      @RequestParam int hours) {
+        return ResponseEntity.ok(adminService.updateMaxDailyBookingHours(id, hours));
+    }
+
 }

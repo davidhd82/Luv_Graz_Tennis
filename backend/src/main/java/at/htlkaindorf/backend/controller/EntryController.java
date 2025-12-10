@@ -28,10 +28,18 @@ public class EntryController {
     }
 
     @PostMapping
-    public ResponseEntity<EntryDto> createEntry(@RequestBody CreateEntryRequest request) {
-        log.info(request.toString());
-        return ResponseEntity.ok(entryService.createEntry(request));
+    public ResponseEntity<?> createEntry(@RequestBody CreateEntryRequest request) {
+        EntryDto dto = entryService.createEntry(request);
+
+        if (dto == null) {
+            return ResponseEntity
+                    .status(409)
+                    .body("Daily booking limit reached");
+        }
+
+        return ResponseEntity.ok(dto);
     }
+
 
     @DeleteMapping("/{courtId}/{date}/{hour}")
     public ResponseEntity<Void> deleteEntry(

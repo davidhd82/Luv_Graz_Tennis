@@ -56,4 +56,8 @@ public class User {
 
     private String verificationToken;
     private LocalDateTime tokenExpiryDate;
+
+    @Column(nullable = false)
+    private int maxDailyBookingHours = 2;
+
 }

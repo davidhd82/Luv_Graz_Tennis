@@ -50,11 +50,10 @@ public class EntryService {
             throw new RuntimeException("This time slot is already booked!");
         }
 
-        if (!user.isAdmin()) {
-            long bookedCount = entryRepository.countByUser_UserIdAndEntryId_EntryDate(user.getUserId(), request.getEntryDate());
-            if (bookedCount >= MAX_DAILY_HOURS) {
-                throw new RuntimeException("You have reached the maximum number of booking hours for this day");
-            }
+        long bookedCount = entryRepository.countByUser_UserIdAndEntryId_EntryDate(
+                user.getUserId(), request.getEntryDate());
+        if (!user.isAdmin() && bookedCount >= user.getMaxDailyBookingHours()) {
+            return null;
         }
 
         Entry entry = new Entry();
