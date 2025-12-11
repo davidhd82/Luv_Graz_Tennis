@@ -52,9 +52,6 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                     <button className="dropdown-item" onClick={handleProfileClick}>
                         👤 Mein Profil
                     </button>
-                    <button className="dropdown-item" onClick={handleSettingsClick}>
-                        ⚙ Einstellungen
-                    </button>
                     {user.isAdmin && (
                         <button className="dropdown-item admin-item" onClick={handleAdminClick}>
                             👑 Admin Dashboard

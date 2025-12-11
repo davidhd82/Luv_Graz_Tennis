@@ -50,13 +50,6 @@ export default function AdminPage() {
     const [editingHours, setEditingHours] = useState<number | null>(null);
     const [tempHoursValue, setTempHoursValue] = useState<string>('');
 
-    // Neue State-Variablen für Platzsperrung
-    const [courtToLock, setCourtToLock] = useState<number>(1);
-    const [lockDate, setLockDate] = useState<string>('');
-    const [lockHour, setLockHour] = useState<number>(8);
-    const [locking, setLocking] = useState(false);
-    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -505,7 +498,7 @@ export default function AdminPage() {
                             <th>E-Mail</th>
                             <th>Admin</th>
                             <th>Mitgliedsbeitrag</th>
-                            <th>Max. Buchungsstunden/Tag</th>
+                            <th>Buchungsstunden/Tag</th>
                             <th>Aktiv</th>
                             <th>Aktionen</th>
                         </tr>

@@ -349,6 +349,9 @@ td:nth-child(2) {
 }
 
 .toggle-membership-btn {
+    border: 2px solid #1e40af;
+    background: white;
+    color: #1e40af;
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -359,7 +362,13 @@ td:nth-child(2) {
     justify-content: center;
     transition: all 0.3s;
     font-weight: bold;
-    border: 2px solid transparent;
+}
+
+.toggle-membership-btn:hover {
+    background: linear-gradient(45deg, #1e40af, #1d4ed8);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
 }
 
 .toggle-membership-btn.paid {
