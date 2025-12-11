@@ -26,33 +26,103 @@ interface CreateEntryRequest {
     entryTypeId: number;
 }
 
+interface CourtBookings {
+    [courtId: number]: EntryDto[];
+}
+
+interface User {
+    userId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isAdmin: boolean;
+    enabled: boolean;
+    membershipPaid: boolean;
+}
+
 export default function BookingPage() {
     const navigate = useNavigate();
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
-    const [bookedEntries, setBookedEntries] = useState<EntryDto[]>([]);
+    const [courtBookings, setCourtBookings] = useState<CourtBookings>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+    // Lade User-Daten vom Backend
+    const fetchCurrentUser = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+                return;
+            }
+
+            const response = await fetch('http://localhost:8080/api/user/me', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+
+                const user: User = {
+                    userId: userData.userId || userData.id,
+                    email: userData.email,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    isAdmin: userData.isAdmin || userData.admin || false,
+                    enabled: userData.enabled || true,
+                    membershipPaid: userData.membershipPaid || false
+                };
+
+                setCurrentUser(user);
+                setIsAuthenticated(true);
+
+                localStorage.setItem('user', JSON.stringify({
+                    userId: user.userId,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    isAdmin: user.isAdmin,
+                    membershipPaid: user.membershipPaid
+                }));
+            } else if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
+    };
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-        setIsAuthenticated(!!token && !!user);
+        const userStr = localStorage.getItem('user');
 
-        if (user) {
-            try {
-                const userData = JSON.parse(user);
-                setCurrentUserEmail(userData.email);
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-            }
-        }
-
-        if (!token || !user) {
+        if (token && userStr) {
+            const userData = JSON.parse(userStr);
+            setCurrentUser({
+                userId: userData.userId || userData.id,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                isAdmin: userData.isAdmin || userData.admin || false,
+                enabled: userData.enabled || true,
+                membershipPaid: userData.membershipPaid || false
+            });
+            setIsAuthenticated(true);
+            fetchCurrentUser();
+        } else {
             setError('Bitte melden Sie sich an um Buchungen zu sehen');
         }
     }, []);
@@ -66,7 +136,9 @@ export default function BookingPage() {
 
     const courts = [1, 2, 3, 4, 5];
 
-    const fetchEntriesForCourtAndDate = async (courtId: number, date: Date) => {
+    const fetchEntriesForAllCourts = async (date: Date) => {
+        if (!isAuthenticated || !currentUser) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -75,45 +147,59 @@ export default function BookingPage() {
 
             if (!token) {
                 setError('Nicht eingeloggt');
-                setBookedEntries([]);
+                setCourtBookings({});
                 return;
             }
 
-            console.log(`🔄 Lade Buchungen für Platz ${courtId} am ${dateKey}`);
+            console.log(`🔄 Lade Buchungen für alle Plätze am ${dateKey}`);
 
-            //const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
-            const response = await fetch(`https://kainhaus.uber.space/api/entries/${courtId}/${dateKey}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+            const fetchPromises = courts.map(async (courtId) => {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (response.status === 401) {
+                        throw new Error('UNAUTHORIZED');
+                    }
+
+                    if (!response.ok) {
+                        console.warn(`Fehler beim Laden von Platz ${courtId}:`, response.status);
+                        return { courtId, entries: [] };
+                    }
+
+                    const entries: EntryDto[] = await response.json();
+                    return { courtId, entries };
+                } catch (err) {
+                    console.error(`Fehler beim Laden von Platz ${courtId}:`, err);
+                    return { courtId, entries: [] };
+                }
             });
 
-            if (response.status === 401) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                setIsAuthenticated(false);
-                setCurrentUserEmail(null);
-                setError('Sitzung abgelaufen. Bitte neu anmelden.');
-                setBookedEntries([]);
-                return;
-            }
+            const results = await Promise.all(fetchPromises);
+            const newCourtBookings: CourtBookings = {};
+            results.forEach(result => {
+                newCourtBookings[result.courtId] = result.entries;
+            });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Fehler:', errorText);
-                throw new Error('Fehler beim Laden der Buchungen: ' + response.status);
-            }
-
-            const entries: EntryDto[] = await response.json();
-            console.log(`Geladene Buchungen für Platz ${courtId}:`, entries);
-            setBookedEntries(entries);
+            setCourtBookings(newCourtBookings);
 
         } catch (err: any) {
             console.error('Error fetching entries:', err);
-            setError(err.message);
-            setBookedEntries([]);
+            if (err.message === 'UNAUTHORIZED') {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+                setError('Sitzung abgelaufen. Bitte neu anmelden.');
+            } else {
+                setError(err.message);
+            }
+            setCourtBookings({});
         } finally {
             setLoading(false);
         }
@@ -126,6 +212,11 @@ export default function BookingPage() {
                 throw new Error('Bitte melden Sie sich an um zu buchen');
             }
 
+            // Prüfe Mitgliedsbeitrag
+            if (currentUser && !currentUser.membershipPaid) {
+                throw new Error('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Buchen ist erst möglich, nachdem der Mitgliedsbeitrag beglichen wurde. Bitte wenden Sie sich an den Administrator.');
+            }
+
             const request: CreateEntryRequest = {
                 entryDate: entryDate,
                 startHour: startHour,
@@ -135,8 +226,7 @@ export default function BookingPage() {
 
             console.log('📤 Sende Buchungsrequest:', request);
 
-            //const response = await fetch('http://localhost:8080/api/entries', {
-            const response = await fetch('https://kainhaus.uber.space/api/entries', {
+            const response = await fetch('http://localhost:8080/api/entries', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -149,7 +239,7 @@ export default function BookingPage() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 setIsAuthenticated(false);
-                setCurrentUserEmail(null);
+                setCurrentUser(null);
                 throw new Error('Sitzung abgelaufen. Bitte neu anmelden.');
             }
 
@@ -161,6 +251,7 @@ export default function BookingPage() {
 
             const result = await response.json();
             console.log('Buchung erfolgreich:', result);
+
             return result;
 
         } catch (err: any) {
@@ -178,10 +269,7 @@ export default function BookingPage() {
 
             console.log(`Lösche Buchung: Platz ${courtId}, ${date}, ${hour}:00`);
 
-
-            // const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
-            const response = await fetch(`https://kainhaus.uber.space/api/entries/${courtId}/${date}/${hour}`, {
-
+            const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -192,7 +280,7 @@ export default function BookingPage() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 setIsAuthenticated(false);
-                setCurrentUserEmail(null);
+                setCurrentUser(null);
                 throw new Error('Sitzung abgelaufen. Bitte neu anmelden.');
             }
 
@@ -209,56 +297,37 @@ export default function BookingPage() {
     };
 
     useEffect(() => {
-        if (selectedDate && selectedCourt && isAuthenticated) {
-            console.log('Platz und Datum ausgewählt, lade Buchungen...');
-            fetchEntriesForCourtAndDate(selectedCourt, selectedDate);
+        if (selectedDate && isAuthenticated) {
+            console.log('Datum ausgewählt, lade Buchungen für alle Plätze...');
+            fetchEntriesForAllCourts(selectedDate);
         } else {
-            console.log('Kein Platz/Datum ausgewählt, leere Buchungen');
-            setBookedEntries([]);
+            setCourtBookings({});
         }
-    }, [selectedDate, selectedCourt, isAuthenticated]);
+    }, [selectedDate, isAuthenticated]);
 
-    const isTimeBooked = (time: string) => {
-        if (!selectedDate || !selectedCourt) return false;
+    const isTimeBooked = (courtId: number, time: string) => {
+        if (!selectedDate || !courtBookings[courtId]) return false;
 
         const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
 
-        console.log('🔍 Prüfe ob Zeit gebucht ist:', {
-            time,
-            hour,
-            selectedCourt,
-            bookedEntries: bookedEntries.map(e => ({ court: e.tennisCourtId, hour: e.startHour }))
-        });
-
-        const isBooked = bookedEntries.some(entry =>
-            entry.tennisCourtId === selectedCourt &&
-            entry.startHour === hour
-        );
-
-        console.log(`⏰ Zeit ${time} ist ${isBooked ? 'GEBUCHT' : 'FREI'}`);
+        const isBooked = bookingsForCourt.some(entry => entry.startHour === hour);
         return isBooked;
     };
 
-    const isMyBooking = (time: string) => {
-        if (!selectedDate || !selectedCourt || !currentUserEmail) return false;
+    const isMyBooking = (courtId: number, time: string) => {
+        if (!selectedDate || !courtBookings[courtId] || !currentUser) return false;
 
         const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
 
-        const myBooking = bookedEntries.some(entry =>
-            entry.tennisCourtId === selectedCourt &&
+        const myBooking = bookingsForCourt.some(entry =>
             entry.startHour === hour &&
-            entry.userEmail === currentUserEmail
+            entry.userEmail === currentUser.email
         );
 
-        console.log(`👤 Zeit ${time} ist ${myBooking ? 'MEINE Buchung' : 'nicht meine'}`);
         return myBooking;
     };
-
-    const myBookings = selectedDate && selectedCourt && currentUserEmail
-        ? bookedEntries.filter(entry =>
-            entry.userEmail === currentUserEmail
-        )
-        : [];
 
     const handleBooking = async () => {
         if (!selectedDate || !selectedCourt || !selectedTime) return;
@@ -283,10 +352,11 @@ export default function BookingPage() {
             await createBooking(selectedCourt, entryDate, startHour);
 
             console.log('🔄 Lade Buchungen nach Buchung neu...');
-            await fetchEntriesForCourtAndDate(selectedCourt, selectedDate);
+            await fetchEntriesForAllCourts(selectedDate);
 
             alert(`Buchung erfolgreich!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
 
+            setSelectedCourt(null);
             setSelectedTime(null);
 
         } catch (err: any) {
@@ -305,7 +375,7 @@ export default function BookingPage() {
             await deleteBooking(courtId, dateKey, hour);
 
             console.log('🔄 Lade Buchungen nach Löschung neu...');
-            await fetchEntriesForCourtAndDate(selectedCourt!, selectedDate!);
+            await fetchEntriesForAllCourts(date);
 
             alert('Buchung erfolgreich gelöscht!');
         } catch (err: any) {
@@ -319,13 +389,8 @@ export default function BookingPage() {
         navigate('/login');
     };
 
-    const handleTimeClick = (time: string, disabled: boolean) => {
-        console.log('🖱️ Zeit geklickt:', { time, disabled });
-
-        if (disabled) {
-            console.log('Zeit ist gebucht - nicht klickbar');
-            return;
-        }
+    const handleTimeClick = (courtId: number, time: string) => {
+        console.log('🖱️ Zeit geklickt:', { courtId, time });
 
         if (!isAuthenticated) {
             setError('Bitte anmelden um eine Zeit auszuwählen');
@@ -333,22 +398,41 @@ export default function BookingPage() {
             return;
         }
 
+        // Prüfe Mitgliedsbeitrag
+        if (currentUser && !currentUser.membershipPaid) {
+            setError('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Buchen ist erst möglich, nachdem der Mitgliedsbeitrag beglichen wurde.');
+            return;
+        }
+
+        // Prüfe ob die Zeit verfügbar ist
+        const booked = isTimeBooked(courtId, time);
+        const myBooking = isMyBooking(courtId, time);
+
+        if (booked && !myBooking) {
+            console.log('Zeit ist bereits gebucht - nicht verfügbar');
+            setError('Dieser Zeitpunkt ist bereits belegt.');
+            return;
+        }
+
+        setSelectedCourt(courtId);
         setSelectedTime(time);
         setError(null);
     };
 
-    const handleCourtClick = (court: number) => {
-        console.log('🖱️ Platz geklickt:', court);
+    const getMyBookings = () => {
+        if (!selectedDate || !currentUser) return [];
 
-        if (!isAuthenticated) {
-            setError('Bitte anmelden um einen Platz auszuwählen');
-            navigate('/login');
-            return;
-        }
+        const allBookings: Array<{courtId: number, entry: EntryDto}> = [];
+        courts.forEach(courtId => {
+            const bookingsForCourt = courtBookings[courtId] || [];
+            bookingsForCourt.forEach(entry => {
+                if (entry.userEmail === currentUser.email) {
+                    allBookings.push({ courtId, entry });
+                }
+            });
+        });
 
-        setSelectedCourt(court);
-        setSelectedTime(null);
-        setError(null);
+        return allBookings;
     };
 
     return (
@@ -371,11 +455,16 @@ export default function BookingPage() {
             {error && (
                 <div className="error-message">
                     {error}
-                    {error.includes('anmelden') && (
-                        <button onClick={handleLoginRedirect} className="inline-login-btn">
-                            Jetzt anmelden
+                    <div className="error-actions">
+                        {error.includes('anmelden') && (
+                            <button onClick={handleLoginRedirect} className="inline-login-btn">
+                                Jetzt anmelden
+                            </button>
+                        )}
+                        <button onClick={() => setError(null)} className="inline-clear-btn">
+                            ✕
                         </button>
-                    )}
+                    </div>
                 </div>
             )}
 
@@ -403,7 +492,7 @@ export default function BookingPage() {
                         setSelectedDate(date as Date);
                         setSelectedCourt(null);
                         setSelectedTime(null);
-                        setBookedEntries([]);
+                        setCourtBookings({});
                         setError(null);
                     }}
                     value={selectedDate}
@@ -416,67 +505,59 @@ export default function BookingPage() {
                 )}
             </section>
 
-            {selectedDate && (
-                <section className="slots">
-                    <h2>2. Wähle einen Tennisplatz</h2>
-                    <div className="slots-grid courts-grid">
-                        {courts.map((court) => (
-                            <button
-                                key={court}
-                                className={`slot-btn court-btn ${
-                                    selectedCourt === court ? "selected" : ""
-                                }`}
-                                onClick={() => handleCourtClick(court)}
-                            >
-                                <span className="court-number">Platz {court}</span>
-                                <div className="status-label available">
-                                    Verfügbar
+            {selectedDate && isAuthenticated && currentUser?.membershipPaid && (
+                <section className="all-courts-section">
+                    <h2>2. Verfügbarkeit aller Plätze</h2>
+                    <div className="all-courts-container">
+                        {courts.map((courtId) => (
+                            <div key={courtId} className="court-column">
+                                <div className="court-header">
+                                    <h3>Platz {courtId}</h3>
                                 </div>
-                            </button>
+                                <div className="court-times">
+                                    {hours.map((time) => {
+                                        const booked = isTimeBooked(courtId, time);
+                                        const myBooking = isMyBooking(courtId, time);
+                                        const isSelected = selectedCourt === courtId && selectedTime === time;
+
+                                        return (
+                                            <button
+                                                key={time}
+                                                className={`time-slot ${
+                                                    booked && !myBooking
+                                                        ? "disabled"
+                                                        : myBooking
+                                                            ? "my-booking"
+                                                            : isSelected
+                                                                ? "selected"
+                                                                : ""
+                                                }`}
+                                                onClick={() => handleTimeClick(courtId, time)}
+                                                disabled={booked && !myBooking}
+                                                title={
+                                                    booked && !myBooking
+                                                        ? "Belegt"
+                                                        : myBooking
+                                                            ? "Meine Buchung"
+                                                            : "Frei"
+                                                }
+                                            >
+                                                <span className="time-label">{time}</span>
+                                                <span className="slot-status">
+                                                    {booked && !myBooking ? "❌" :
+                                                        myBooking ? "⭐" : "✓"}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </section>
             )}
 
-            {selectedDate && selectedCourt && (
-                <section className="slots">
-                    <h2>3. Wähle eine Uhrzeit für Platz {selectedCourt}</h2>
-                    <div className="slots-grid times-grid">
-                        {hours.map((time) => {
-                            const booked = isTimeBooked(time);
-                            const myBooking = isMyBooking(time);
-
-                            return (
-                                <button
-                                    key={time}
-                                    className={`slot-btn time-btn ${
-                                        booked && !myBooking
-                                            ? "disabled"
-                                            : myBooking
-                                                ? "my-booking"
-                                                : selectedTime === time
-                                                    ? "selected"
-                                                    : ""
-                                    }`}
-                                    onClick={() => handleTimeClick(time, booked && !myBooking)}
-                                    disabled={booked && !myBooking}
-                                >
-                                    {time}
-                                    {booked && !myBooking ? (
-                                        <div className="status-label">Belegt</div>
-                                    ) : myBooking ? (
-                                        <div className="status-label my-booking-label">Meine Buchung</div>
-                                    ) : (
-                                        <div className="status-label available">Frei</div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </section>
-            )}
-
-            {selectedDate && selectedCourt && selectedTime && isAuthenticated && (
+            {selectedDate && selectedCourt && selectedTime && isAuthenticated && currentUser?.membershipPaid && (
                 <footer className="footer">
                     <div className="booking-summary">
                         <h3>Buchungsübersicht</h3>
@@ -496,16 +577,16 @@ export default function BookingPage() {
                 </footer>
             )}
 
-            {selectedDate && selectedCourt && isAuthenticated && myBookings.length > 0 && (
-                <section className="slots">
+            {selectedDate && isAuthenticated && getMyBookings().length > 0 && (
+                <section className="my-bookings-section">
                     <h2>Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
-                    <div className="my-bookings">
-                        {myBookings.map((entry) => (
-                            <div key={`${entry.tennisCourtId}-${entry.startHour}`} className="booking-item">
-                                <span>Platz {entry.tennisCourtId} • {entry.startHour}:00 Uhr</span>
+                    <div className="my-bookings-list">
+                        {getMyBookings().map(({ courtId, entry }) => (
+                            <div key={`${courtId}-${entry.startHour}`} className="booking-item">
+                                <span>Platz {courtId} • {entry.startHour}:00 Uhr</span>
                                 <button
                                     className="delete-booking-btn"
-                                    onClick={() => handleDeleteBooking(entry.tennisCourtId, selectedDate, `${entry.startHour}:00`)}
+                                    onClick={() => handleDeleteBooking(courtId, selectedDate, `${entry.startHour}:00`)}
                                     disabled={loading}
                                 >
                                     Löschen
