@@ -1,4 +1,4 @@
-/* Admin.css - Mit Mitgliedsbeitrags-Feature */
+/* Admin.css - Mit Mitgliedsbeitrags-Feature und Platz-Sperrung */
 * {
     margin: 0;
     padding: 0;
@@ -1032,3 +1032,198 @@ td:nth-child(2) {
     }
 }
 
+/* ============================================= */
+/* PLATZ-SPERRUNG STYLES - NEUE ERGÄNZUNGEN      */
+/* ============================================= */
+
+/* Platz-Sperrung Sektion */
+.court-locking-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin: 0 0 30px 0;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.court-locking-section h3 {
+    margin: 0 0 20px 0;
+    color: #1e40af;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lock-controls {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.lock-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 140px;
+}
+
+.lock-input-group label {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 0.95rem;
+}
+
+.court-select, .hour-input {
+    padding: 12px 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    color: #1f2937;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.court-select {
+    background: linear-gradient(45deg, #f8fafc, #ffffff);
+    cursor: pointer;
+}
+
+.hour-input {
+    background: linear-gradient(45deg, #f8fafc, #ffffff);
+}
+
+.court-select:focus, .hour-input:focus {
+    outline: none;
+    border-color: #1e40af;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    color: #1f2937;
+}
+
+.lock-btn {
+    padding: 12px 30px;
+    background: linear-gradient(45deg, #dc2626, #b91c1c);
+    color: white;
+    border: 2px solid #b91c1c;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    height: 46px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.lock-btn:hover:not(:disabled) {
+    background: white;
+    color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
+}
+
+.lock-btn:disabled {
+    background: linear-gradient(45deg, #9ca3af, #6b7280);
+    border-color: #6b7280;
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+}
+
+/* Lock Info Hinweis */
+.lock-info {
+    margin-top: 10px;
+    color: #f59e0b;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border-radius: 6px;
+    border-left: 3px solid #f59e0b;
+}
+
+/* Styles für Gesperrte Buchungen in der Tabelle */
+.locked-badge {
+    background: linear-gradient(45deg, #fef2f2, #fee2e2) !important;
+    color: #dc2626 !important;
+    border-color: #fecaca !important;
+    font-weight: 600;
+    border: 2px solid #fecaca !important;
+}
+
+.delete-locked-btn {
+    background: linear-gradient(45deg, #10b981, #059669) !important;
+    border-color: #059669 !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.delete-locked-btn:hover {
+    background: white !important;
+    color: #059669 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* Responsive Anpassungen für Platz-Sperrung */
+@media (max-width: 768px) {
+    .court-locking-section {
+        padding: 15px;
+        margin: 0 0 20px 0;
+    }
+
+    .court-locking-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    .lock-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .lock-input-group {
+        width: 100%;
+    }
+
+    .court-select, .hour-input {
+        width: 100%;
+        padding: 10px 12px;
+    }
+
+    .lock-btn {
+        width: 100%;
+        margin-top: 10px;
+        height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .court-locking-section {
+        padding: 12px;
+    }
+
+    .court-locking-section h3 {
+        font-size: 1rem;
+        padding-bottom: 8px;
+    }
+
+    .lock-controls {
+        gap: 12px;
+    }
+
+    .lock-btn {
+        font-size: 0.95rem;
+        padding: 10px 20px;
+    }
+}

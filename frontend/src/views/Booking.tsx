@@ -10,6 +10,15 @@ const hours = [
     "16:00", "17:00", "18:00", "19:00", "20:00"
 ];
 
+// Interface für Entry-Types
+interface EntryType {
+    entryTypeId: number;
+    name: string;
+    colorClass: string;
+    icon: string;
+    description: string;
+}
+
 interface EntryDto {
     entryDate: string;
     startHour: number;
@@ -46,11 +55,45 @@ export default function BookingPage() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [selectedEntryType, setSelectedEntryType] = useState<number>(1); // Default: Buchung (1)
     const [courtBookings, setCourtBookings] = useState<CourtBookings>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [showEntryTypeSelector, setShowEntryTypeSelector] = useState(false);
+
+    // Definition der Entry-Types mit allen Details
+    const entryTypes: EntryType[] = [
+        {
+            entryTypeId: 1,
+            name: "Buchung",
+            colorClass: "booking-type",
+            icon: "📅",
+            description: "Normale Platzbuchung für Mitglieder"
+        },
+        {
+            entryTypeId: 2,
+            name: "Kurs",
+            colorClass: "course-type",
+            icon: "🎓",
+            description: "Tennis-Kurs oder Training"
+        },
+        {
+            entryTypeId: 3,
+            name: "Turnier",
+            colorClass: "tournament-type",
+            icon: "🏆",
+            description: "Turnier oder Wettkampf"
+        },
+        {
+            entryTypeId: 4,
+            name: "Gesperrt",
+            colorClass: "locked-type",
+            icon: "🔒",
+            description: "Platz gesperrt (nicht buchbar)"
+        }
+    ];
 
     // Lade User-Daten vom Backend
     const fetchCurrentUser = async () => {
@@ -136,6 +179,84 @@ export default function BookingPage() {
 
     const courts = [1, 2, 3, 4, 5];
 
+    // Funktion zum Ermitteln des Entry-Types für einen Slot
+    const getEntryTypeForSlot = (courtId: number, time: string): EntryType | null => {
+        if (!selectedDate || !courtBookings[courtId]) return null;
+
+        const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
+
+        const entry = bookingsForCourt.find(entry => entry.startHour === hour);
+        if (!entry) return null;
+
+        // Finde den passenden Entry-Type
+        return entryTypes.find(type =>
+            type.name === entry.entryTypeName ||
+            (type.entryTypeId === 4 && entry.entryTypeName === 'Gesperrt')
+        ) || null;
+    };
+
+    // Prüft ob ein Slot belegt ist (beliebiger Type)
+    const isTimeBooked = (courtId: number, time: string) => {
+        if (!selectedDate || !courtBookings[courtId]) return false;
+
+        const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
+
+        const isBooked = bookingsForCourt.some(entry => entry.startHour === hour);
+        return isBooked;
+    };
+
+    // WICHTIG: Prüft ob es eine Buchung (Type 1) vom aktuellen User ist
+    const isMyBooking = (courtId: number, time: string) => {
+        if (!selectedDate || !courtBookings[courtId] || !currentUser) return false;
+
+        const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
+
+        const myBooking = bookingsForCourt.some(entry =>
+            entry.startHour === hour &&
+            entry.userEmail === currentUser.email &&
+            entry.entryTypeName === 'Buchung'
+        );
+
+        return myBooking;
+    };
+
+    // Prüft ob es eine Buchung von einem ANDEREN User ist (nur Type 1)
+    const isOtherUsersBooking = (courtId: number, time: string) => {
+        if (!selectedDate || !courtBookings[courtId] || !currentUser) return false;
+
+        const hour = parseInt(time.split(':')[0]);
+        const bookingsForCourt = courtBookings[courtId] || [];
+
+        const otherBooking = bookingsForCourt.some(entry =>
+            entry.startHour === hour &&
+            entry.userEmail !== currentUser.email &&
+            entry.entryTypeName === 'Buchung'
+        );
+
+        return otherBooking;
+    };
+
+    // Prüft ob der Slot gesperrt ist (Type 4: Gesperrt)
+    const isTimeLocked = (courtId: number, time: string) => {
+        const entryType = getEntryTypeForSlot(courtId, time);
+        return entryType?.entryTypeId === 4;
+    };
+
+    // Prüft ob es ein Kurs (Type 2) ist
+    const isCourse = (courtId: number, time: string) => {
+        const entryType = getEntryTypeForSlot(courtId, time);
+        return entryType?.entryTypeId === 2;
+    };
+
+    // Prüft ob es ein Turnier (Type 3) ist
+    const isTournament = (courtId: number, time: string) => {
+        const entryType = getEntryTypeForSlot(courtId, time);
+        return entryType?.entryTypeId === 3;
+    };
+
     const fetchEntriesForAllCourts = async (date: Date) => {
         if (!isAuthenticated || !currentUser) return;
 
@@ -212,16 +333,27 @@ export default function BookingPage() {
                 throw new Error('Bitte melden Sie sich an um zu buchen');
             }
 
-            // Prüfe Mitgliedsbeitrag
-            if (currentUser && !currentUser.membershipPaid) {
+            // Prüfe Mitgliedsbeitrag (nur für normale Buchungen)
+            if (currentUser && !currentUser.membershipPaid && selectedEntryType === 1) {
                 throw new Error('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Buchen ist erst möglich, nachdem der Mitgliedsbeitrag beglichen wurde. Bitte wenden Sie sich an den Administrator.');
+            }
+
+            // Prüfe ob der Slot bereits belegt ist
+            const booked = isTimeBooked(tennisCourtId, `${startHour}:00`);
+            if (booked) {
+                throw new Error('Dieser Platz ist für diese Stunde bereits belegt.');
+            }
+
+            // Für Nicht-Admins: Nur Buchung (Type 1) erlauben
+            if (!currentUser?.isAdmin && selectedEntryType !== 1) {
+                throw new Error('Nur Administratoren können Kurse, Turniere oder Sperrungen erstellen.');
             }
 
             const request: CreateEntryRequest = {
                 entryDate: entryDate,
                 startHour: startHour,
                 tennisCourtId: tennisCourtId,
-                entryTypeId: 1
+                entryTypeId: selectedEntryType
             };
 
             console.log('📤 Sende Buchungsrequest:', request);
@@ -305,30 +437,6 @@ export default function BookingPage() {
         }
     }, [selectedDate, isAuthenticated]);
 
-    const isTimeBooked = (courtId: number, time: string) => {
-        if (!selectedDate || !courtBookings[courtId]) return false;
-
-        const hour = parseInt(time.split(':')[0]);
-        const bookingsForCourt = courtBookings[courtId] || [];
-
-        const isBooked = bookingsForCourt.some(entry => entry.startHour === hour);
-        return isBooked;
-    };
-
-    const isMyBooking = (courtId: number, time: string) => {
-        if (!selectedDate || !courtBookings[courtId] || !currentUser) return false;
-
-        const hour = parseInt(time.split(':')[0]);
-        const bookingsForCourt = courtBookings[courtId] || [];
-
-        const myBooking = bookingsForCourt.some(entry =>
-            entry.startHour === hour &&
-            entry.userEmail === currentUser.email
-        );
-
-        return myBooking;
-    };
-
     const handleBooking = async () => {
         if (!selectedDate || !selectedCourt || !selectedTime) return;
 
@@ -346,7 +454,8 @@ export default function BookingPage() {
             console.log('🚀 Starte Buchung mit:', {
                 tennisCourtId: selectedCourt,
                 entryDate,
-                startHour
+                startHour,
+                entryTypeId: selectedEntryType
             });
 
             await createBooking(selectedCourt, entryDate, startHour);
@@ -354,10 +463,18 @@ export default function BookingPage() {
             console.log('🔄 Lade Buchungen nach Buchung neu...');
             await fetchEntriesForAllCourts(selectedDate);
 
-            alert(`Buchung erfolgreich!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
+            const entryTypeName = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.name || 'Buchung';
+            const entryTypeIcon = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.icon || '📅';
 
+            alert(`${entryTypeIcon} ${entryTypeName} erfolgreich erstellt!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
+
+            // Zurücksetzen auf Buchung (Type 1) nach erfolgreicher Buchung
+            if (currentUser?.isAdmin) {
+                setSelectedEntryType(1);
+            }
             setSelectedCourt(null);
             setSelectedTime(null);
+            setShowEntryTypeSelector(false);
 
         } catch (err: any) {
             setError(err.message);
@@ -398,24 +515,47 @@ export default function BookingPage() {
             return;
         }
 
-        // Prüfe Mitgliedsbeitrag
-        if (currentUser && !currentUser.membershipPaid) {
-            setError('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Buchen ist erst möglich, nachdem der Mitgliedsbeitrag beglichen wurde.');
+        // Prüfe ob der Slot gesperrt ist
+        const locked = isTimeLocked(courtId, time);
+        if (locked) {
+            setError('Dieser Platz ist für diese Stunde gesperrt.');
             return;
         }
 
-        // Prüfe ob die Zeit verfügbar ist
-        const booked = isTimeBooked(courtId, time);
-        const myBooking = isMyBooking(courtId, time);
+        // Prüfe ob es ein Kurs oder Turnier ist
+        const course = isCourse(courtId, time);
+        const tournament = isTournament(courtId, time);
+        if (course || tournament) {
+            setError('Dieser Platz ist für einen Kurs/Turnier reserviert.');
+            return;
+        }
 
-        if (booked && !myBooking) {
-            console.log('Zeit ist bereits gebucht - nicht verfügbar');
-            setError('Dieser Zeitpunkt ist bereits belegt.');
+        // Prüfe ob der Slot durch andere User belegt ist
+        const otherBooking = isOtherUsersBooking(courtId, time);
+        if (otherBooking) {
+            setError('Dieser Zeitpunkt ist bereits durch einen anderen Benutzer gebucht.');
+            return;
+        }
+
+        // Prüfe ob es deine eigene Buchung ist
+        const myBooking = isMyBooking(courtId, time);
+        if (myBooking) {
+            // Eigene Buchung kann gelöscht werden, nicht neu gebucht
+            setError('Dies ist deine eigene Buchung. Du kannst sie löschen, aber nicht neu buchen.');
             return;
         }
 
         setSelectedCourt(courtId);
         setSelectedTime(time);
+
+        // Für Admins: Entry-Type Selector anzeigen, für normale User direkt Type 1 setzen
+        if (currentUser?.isAdmin) {
+            setShowEntryTypeSelector(true);
+        } else {
+            setSelectedEntryType(1); // Immer Buchung für normale User
+            setShowEntryTypeSelector(false);
+        }
+
         setError(null);
     };
 
@@ -426,13 +566,18 @@ export default function BookingPage() {
         courts.forEach(courtId => {
             const bookingsForCourt = courtBookings[courtId] || [];
             bookingsForCourt.forEach(entry => {
-                if (entry.userEmail === currentUser.email) {
+                if (entry.userEmail === currentUser.email && entry.entryTypeName === 'Buchung') {
                     allBookings.push({ courtId, entry });
                 }
             });
         });
 
         return allBookings;
+    };
+
+    // Get the current entry type
+    const getCurrentEntryType = () => {
+        return entryTypes.find(t => t.entryTypeId === selectedEntryType) || entryTypes[0];
     };
 
     return (
@@ -494,6 +639,8 @@ export default function BookingPage() {
                         setSelectedTime(null);
                         setCourtBookings({});
                         setError(null);
+                        setShowEntryTypeSelector(false);
+                        setSelectedEntryType(1);
                     }}
                     value={selectedDate}
                     minDate={new Date()}
@@ -516,37 +663,65 @@ export default function BookingPage() {
                                 </div>
                                 <div className="court-times">
                                     {hours.map((time) => {
-                                        const booked = isTimeBooked(courtId, time);
+                                        const locked = isTimeLocked(courtId, time);
+                                        const course = isCourse(courtId, time);
+                                        const tournament = isTournament(courtId, time);
                                         const myBooking = isMyBooking(courtId, time);
+                                        const otherBooking = isOtherUsersBooking(courtId, time);
                                         const isSelected = selectedCourt === courtId && selectedTime === time;
+
+                                        // Bestimme die CSS-Klasse basierend auf Status
+                                        let typeClass = "";
+                                        let titleText = "";
+                                        let icon = "✓";
+
+                                        if (locked) {
+                                            typeClass = "locked-type";
+                                            titleText = "🔒 Gesperrt";
+                                            icon = "🔒";
+                                        } else if (course) {
+                                            typeClass = "course-type";
+                                            titleText = "🎓 Kurs";
+                                            icon = "🎓";
+                                        } else if (tournament) {
+                                            typeClass = "tournament-type";
+                                            titleText = "🏆 Turnier";
+                                            icon = "🏆";
+                                        } else if (myBooking) {
+                                            typeClass = "my-booking";
+                                            titleText = "⭐ Meine Buchung";
+                                            icon = "⭐";
+                                        } else if (otherBooking) {
+                                            typeClass = "other-booking";
+                                            titleText = "❌ Durch andere gebucht";
+                                            icon = "❌";
+                                        } else if (isSelected) {
+                                            typeClass = "selected";
+                                            titleText = "✓ Ausgewählt";
+                                            icon = "✓";
+                                        }
 
                                         return (
                                             <button
                                                 key={time}
-                                                className={`time-slot ${
-                                                    booked && !myBooking
-                                                        ? "disabled"
-                                                        : myBooking
-                                                            ? "my-booking"
-                                                            : isSelected
-                                                                ? "selected"
-                                                                : ""
-                                                }`}
+                                                className={`time-slot ${typeClass}`}
                                                 onClick={() => handleTimeClick(courtId, time)}
-                                                disabled={booked && !myBooking}
-                                                title={
-                                                    booked && !myBooking
-                                                        ? "Belegt"
-                                                        : myBooking
-                                                            ? "Meine Buchung"
-                                                            : "Frei"
-                                                }
+                                                disabled={locked || course || tournament || otherBooking || myBooking}
+                                                title={titleText}
                                             >
                                                 <span className="time-label">{time}</span>
                                                 <span className="slot-status">
-                                                    {booked && !myBooking ? "❌" :
-                                                        myBooking ? "⭐" : "✓"}
+                                                    {icon}
                                                 </span>
+                                                {typeClass && (
+                                                    <span className="slot-status-text">
+                                                        {locked ? "Gesperrt" :
+                                                            course ? "Kurs" :
+                                                                tournament ? "Turnier" :
+                                                                    myBooking ? "Meine Buchung" :
+                                                                        otherBooking ? "Belegt" : ""}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
@@ -557,29 +732,122 @@ export default function BookingPage() {
                 </section>
             )}
 
+            {/* VERBESSERTER ENTRY-TYPE SELECTOR FÜR ADMINS */}
+            {showEntryTypeSelector && currentUser?.isAdmin && selectedCourt && selectedTime && (
+                <div className="entry-type-selector">
+                    <h3>📋 Buchungstyp auswählen für Platz {selectedCourt} um {selectedTime}</h3>
+                    <p className="selector-description">
+                        Wählen Sie den Typ der Buchung aus:
+                    </p>
+
+                    <div className="entry-type-options">
+                        {entryTypes.map((type) => (
+                            <div
+                                key={type.entryTypeId}
+                                className={`entry-type-card ${selectedEntryType === type.entryTypeId ? 'selected' : ''}`}
+                                onClick={() => setSelectedEntryType(type.entryTypeId)}
+                            >
+                                <div className={`entry-type-icon ${type.colorClass}`}>
+                                    {type.icon}
+                                </div>
+                                <div className="entry-type-content">
+                                    <h4>{type.name}</h4>
+                                    <p>{type.description}</p>
+                                </div>
+                                <div className="entry-type-radio">
+                                    <input
+                                        type="radio"
+                                        name="entryType"
+                                        checked={selectedEntryType === type.entryTypeId}
+                                        onChange={() => setSelectedEntryType(type.entryTypeId)}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="selected-entry-type-info">
+                        <div className="current-selection">
+                            <span className="selection-icon">
+                                {getCurrentEntryType().icon}
+                            </span>
+                            <div>
+                                <strong>Aktuell ausgewählt:</strong>
+                                <div className="selection-name">{getCurrentEntryType().name}</div>
+                                <div className="selection-description">{getCurrentEntryType().description}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Buchungsbestätigung */}
             {selectedDate && selectedCourt && selectedTime && isAuthenticated && currentUser?.membershipPaid && (
                 <footer className="footer">
                     <div className="booking-summary">
                         <h3>Buchungsübersicht</h3>
-                        <p>
-                            <strong>Datum:</strong> {selectedDate.toLocaleDateString("de-DE")}<br />
-                            <strong>Platz:</strong> {selectedCourt}<br />
-                            <strong>Uhrzeit:</strong> {selectedTime}
-                        </p>
+                        <div className="summary-details">
+                            <div className="summary-item">
+                                <span className="summary-label">Datum:</span>
+                                <span className="summary-value">{selectedDate.toLocaleDateString("de-DE")}</span>
+                            </div>
+                            <div className="summary-item">
+                                <span className="summary-label">Platz:</span>
+                                <span className="summary-value">{selectedCourt}</span>
+                            </div>
+                            <div className="summary-item">
+                                <span className="summary-label">Uhrzeit:</span>
+                                <span className="summary-value">{selectedTime}</span>
+                            </div>
+                            {currentUser?.isAdmin && (
+                                <div className="summary-item">
+                                    <span className="summary-label">Typ:</span>
+                                    <span className={`summary-value ${getCurrentEntryType().colorClass}`}>
+                                        {getCurrentEntryType().icon} {getCurrentEntryType().name}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
+
                     <button
                         className="confirm-btn"
                         onClick={handleBooking}
                         disabled={loading}
+                        style={{
+                            backgroundColor: currentUser?.isAdmin
+                                ? getCurrentEntryType().colorClass === 'booking-type' ? '#10b981'
+                                    : getCurrentEntryType().colorClass === 'course-type' ? '#f97316'
+                                        : getCurrentEntryType().colorClass === 'tournament-type' ? '#a855f7'
+                                            : '#3b82f6'
+                                : '#10b981'
+                        }}
                     >
-                        {loading ? 'Bucht...' : 'Jetzt buchen'}
+                        {loading ? 'Wird erstellt...' :
+                            currentUser?.isAdmin
+                                ? `${getCurrentEntryType().icon} ${getCurrentEntryType().name} erstellen`
+                                : '📅 Jetzt buchen'}
                     </button>
+
+                    {currentUser?.isAdmin && (
+                        <button
+                            className="cancel-selector-btn"
+                            onClick={() => {
+                                setSelectedCourt(null);
+                                setSelectedTime(null);
+                                setShowEntryTypeSelector(false);
+                                setSelectedEntryType(1);
+                            }}
+                        >
+                            Auswahl abbrechen
+                        </button>
+                    )}
                 </footer>
             )}
 
             {selectedDate && isAuthenticated && getMyBookings().length > 0 && (
                 <section className="my-bookings-section">
-                    <h2>Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
+                    <h2>📋 Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
                     <div className="my-bookings-list">
                         {getMyBookings().map(({ courtId, entry }) => (
                             <div key={`${courtId}-${entry.startHour}`} className="booking-item">

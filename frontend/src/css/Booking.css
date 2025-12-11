@@ -1259,3 +1259,474 @@ body {
 .time-slot.cannot-book .slot-status {
     color: #94a3b8;
 }
+
+/* BLUE STYLES FOR LOCKED/ADMIN-BOOKED TIME SLOTS */
+
+/* Blauer Hintergrund für gesperrte/Admin-Buchungen */
+.slot-btn.admin-booked {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border: 2px solid #93c5fd !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    position: relative;
+}
+
+.slot-btn.admin-booked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+}
+
+/* Blauer Status-Label für Admin-Buchungen */
+.slot-btn.admin-booked .status-label {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #1e40af !important;
+    border: 1px solid rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Blauer Shimmer-Effekt für Admin-Buchungen */
+.slot-btn.admin-booked::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+    transparent 40%,
+    rgba(37, 99, 235, 0.1) 50%,
+    transparent 60%);
+    background-size: 200% 200%;
+    animation: shimmer 3s infinite;
+    z-index: 1;
+}
+
+/* Für die alle-Plätze-Ansicht (All Courts View) */
+.time-slot.admin-booked {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border: 2px solid #93c5fd !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    position: relative;
+}
+
+.time-slot.admin-booked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+}
+
+/* Icon für Admin-Buchungen */
+.time-slot.admin-booked .slot-status {
+    color: #1e40af !important;
+    font-size: 1rem;
+}
+
+/* Spezieller Status-Text für Admin-Buchungen */
+.admin-booked-label {
+    background: rgba(37, 99, 235, 0.2);
+    color: #1e40af;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    margin-top: 4px;
+}
+
+/* Falls gewünscht: Custom Icon für gesperrte Plätze */
+.slot-btn.admin-booked::before {
+    content: "🔒";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.time-slot.admin-booked::before {
+    content: "🔒";
+    margin-right: 5px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Falls der Platz sowohl gesperrt als auch deine eigene Buchung ist */
+.slot-btn.admin-booked.my-booking {
+    background: linear-gradient(45deg, #dcfce7, #dbeafe) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .slot-btn.admin-booked {
+        padding: 8px 6px;
+    }
+
+    .time-slot.admin-booked {
+        padding: 8px 10px;
+    }
+
+    .admin-booked-label {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+}
+
+/* ENTRY TYPE STYLES - DIFFERENT COLORS FOR EACH TYPE */
+
+/* Buchung - Grün */
+.time-slot.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+}
+
+/* Kurs - Orange */
+.time-slot.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa) !important;
+    color: #9a3412 !important;
+    border: 2px solid #f97316 !important;
+}
+
+/* Turnier - Lila */
+.time-slot.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff) !important;
+    color: #6b21a8 !important;
+    border: 2px solid #a855f7 !important;
+}
+
+/* Gesperrt - Blau */
+.time-slot.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe) !important;
+    color: #1e40af !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+/* Meine Buchung - Dunkelgrün */
+.time-slot.my-booking {
+    background: linear-gradient(45deg, #bbf7d0, #86efac) !important;
+    color: #14532d !important;
+    border: 2px solid #16a34a !important;
+    font-weight: 600 !important;
+}
+
+/* Belegt (Disabled) - Rot */
+.time-slot.disabled {
+    background: linear-gradient(45deg, #fee2e2, #fecaca) !important;
+    color: #991b1b !important;
+    border: 2px solid #ef4444 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Ausgewählt - Dunkelblau */
+.time-slot.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af) !important;
+    color: white !important;
+    border: 2px solid #1e3a8a !important;
+}
+
+/* Entry Type Label */
+.entry-type-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ENTRY TYPE SELECTOR FOR ADMINS */
+.entry-type-selector {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+}
+
+.entry-type-selector h3 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.entry-type-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.entry-type-btn {
+    padding: 12px 8px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.entry-type-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.entry-type-btn.selected {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid #1e40af;
+}
+
+/* Farben für die Entry-Type Buttons */
+.entry-type-btn.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    border-color: #22c55e;
+}
+
+.entry-type-btn.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa);
+    color: #9a3412;
+    border-color: #f97316;
+}
+
+.entry-type-btn.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff);
+    color: #6b21a8;
+    border-color: #a855f7;
+}
+
+.entry-type-btn.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe);
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+.selected-entry-type-info {
+    text-align: center;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    color: #1e40af;
+    font-weight: 500;
+}
+
+/* LEGENDE */
+.entry-types-legend {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+}
+
+.entry-types-legend h3 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.legend-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+}
+
+.legend-color.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+    border-color: #22c55e;
+}
+
+.legend-color.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa);
+    border-color: #f97316;
+}
+
+.legend-color.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff);
+    border-color: #a855f7;
+}
+
+.legend-color.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe);
+    border-color: #3b82f6;
+}
+
+.legend-color.my-booking {
+    background: linear-gradient(45deg, #bbf7d0, #86efac);
+    border-color: #16a34a;
+}
+
+.legend-color.disabled {
+    background: linear-gradient(45deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+}
+
+.legend-color.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af);
+    border-color: #1e3a8a;
+}
+
+/* ICONS für verschiedene Entry Types */
+.time-slot .slot-status {
+    font-size: 1.1rem;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .entry-type-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .legend-items {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-type-btn {
+        padding: 10px 6px;
+        font-size: 0.85rem;
+    }
+
+    .time-slot .entry-type-label {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .entry-type-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* NEUE STYLES FÜR BUCHUNGEN VON ANDEREN USERN */
+
+/* Buchung vom aktuellen User - GRÜN */
+.time-slot.my-booking {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+    cursor: not-allowed !important;
+}
+
+/* Buchung von anderen Usern - ROT */
+.time-slot.other-booking {
+    background: linear-gradient(45deg, #fee2e2, #fecaca) !important;
+    color: #991b1b !important;
+    border: 2px solid #ef4444 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Kurs - ORANGE */
+.time-slot.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa) !important;
+    color: #9a3412 !important;
+    border: 2px solid #f97316 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Turnier - LILA */
+.time-slot.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff) !important;
+    color: #6b21a8 !important;
+    border: 2px solid #a855f7 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Gesperrt - BLAU */
+.time-slot.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe) !important;
+    color: #1e40af !important;
+    border: 2px solid #3b82f6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Frei - GRAU (Standard) */
+.time-slot:not(.my-booking):not(.other-booking):not(.course-type):not(.tournament-type):not(.locked-type):not(.selected) {
+    background: linear-gradient(45deg, #f8fafc, #f1f5f9) !important;
+    color: #374151 !important;
+    border: 2px solid #d1d5db !important;
+}
+
+/* Ausgewählt - DUNKELBLAU */
+.time-slot.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af) !important;
+    color: white !important;
+    border: 2px solid #1e3a8a !important;
+}
+
+/* Slot Status Text */
+.slot-status-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* LEGENDE-FARBEN FÜR ANDERE BUCHUNGEN */
+.legend-color.other-booking {
+    background: linear-gradient(45deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+}
+
+/* Hover-Effekte nur für freie Slots */
+.time-slot:not(.my-booking):not(.other-booking):not(.course-type):not(.tournament-type):not(.locked-type):not(.selected):hover {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border-color: #93c5fd !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* Status-Label im Button */
+.time-slot .slot-status {
+    font-size: 1.2rem;
+    margin-bottom: 3px;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .slot-status-text {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+
+    .time-slot .slot-status {
+        font-size: 1rem;
+    }
+}

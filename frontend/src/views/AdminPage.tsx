@@ -17,7 +17,7 @@ interface User {
     isAdmin: boolean;
     enabled: boolean;
     membershipPaid: boolean;
-    maxDailyBookingHours: number; // Geändert von maxDailyHours
+    maxDailyBookingHours: number;
 }
 
 interface EntryDto {
@@ -31,6 +31,14 @@ interface EntryDto {
     userName: string;
 }
 
+interface CreateEntryRequest {
+    entryDate: string;
+    startHour: number;
+    tennisCourtId: number;
+    entryTypeId: number;
+    userId: number;
+}
+
 export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [entries, setEntries] = useState<EntryDto[]>([]);
@@ -41,12 +49,47 @@ export default function AdminPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [editingHours, setEditingHours] = useState<number | null>(null);
     const [tempHoursValue, setTempHoursValue] = useState<string>('');
+
+    // Neue State-Variablen für Platzsperrung
+    const [courtToLock, setCourtToLock] = useState<number>(1);
+    const [lockDate, setLockDate] = useState<string>('');
+    const [lockHour, setLockHour] = useState<number>(8);
+    const [locking, setLocking] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
     const navigate = useNavigate();
 
     useEffect(() => {
+        fetchCurrentUser();
         fetchUsers();
         fetchAllEntries();
     }, []);
+
+    const fetchCurrentUser = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Kein Token gefunden');
+            }
+
+            const response = await fetch('http://localhost:8080/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Fehler beim Laden des aktuellen Benutzers');
+            }
+
+            const userData = await response.json();
+            setCurrentUserId(userData.userId);
+            localStorage.setItem('userId', userData.userId.toString());
+        } catch (err: any) {
+            console.error('Error fetching current user:', err);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -84,7 +127,7 @@ export default function AdminPage() {
                     ...user,
                     isAdmin: isAdminValue,
                     userId: user.userId || user.id,
-                    maxDailyBookingHours: user.maxDailyBookingHours || 2 // Default: 2 Stunden
+                    maxDailyBookingHours: user.maxDailyBookingHours || 2
                 };
             });
 
@@ -376,21 +419,6 @@ export default function AdminPage() {
         return true;
     });
 
-    // Statistik-Funktionen
-    const getUsersWithMembershipPaid = () => {
-        return users.filter(u => u.membershipPaid).length;
-    };
-
-    const getUsersWithoutMembershipPaid = () => {
-        return users.filter(u => !u.membershipPaid).length;
-    };
-
-    const getAverageBookingHours = () => {
-        if (users.length === 0) return 0;
-        const totalHours = users.reduce((sum, user) => sum + (user.maxDailyBookingHours || 2), 0);
-        return Math.round((totalHours / users.length) * 10) / 10;
-    };
-
     if (loading) {
         return (
             <div className="admin-container">
@@ -628,15 +656,18 @@ export default function AdminPage() {
                                 <td>{entry.userName}</td>
                                 <td>{entry.userEmail}</td>
                                 <td>
-                                    <span className="type-badge">📅 {entry.entryTypeName}</span>
+                                    <span className={`type-badge ${entry.entryTypeName === 'Gesperrt' ? 'locked-badge' : ''}`}>
+                                        {entry.entryTypeName === 'Gesperrt' ? '🔒 ' : '📅 '}
+                                        {entry.entryTypeName}
+                                    </span>
                                 </td>
                                 <td>
                                     <button
                                         onClick={() => handleDeleteBooking(entry.tennisCourtId, entry.entryDate, entry.startHour)}
-                                        className="delete-btn"
-                                        title="Buchung löschen"
+                                        className={`delete-btn ${entry.entryTypeName === 'Gesperrt' ? 'delete-locked-btn' : ''}`}
+                                        title={entry.entryTypeName === 'Gesperrt' ? 'Sperrung aufheben' : 'Buchung löschen'}
                                     >
-                                        Löschen
+                                        {entry.entryTypeName === 'Gesperrt' ? 'Freigeben' : 'Löschen'}
                                     </button>
                                 </td>
                             </tr>
