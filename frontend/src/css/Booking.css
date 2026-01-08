@@ -10,7 +10,7 @@ body {
 
 .page {
     width: 100%;
-    max-width: 900px;
+    max-width: 1200px;
     padding: 20px;
 }
 
@@ -254,8 +254,8 @@ body {
 }
 
 .back-btn {
-    background: #64748b;
-    color: white;
+    background: #101315;
+    color: #2563eb;
     border: none;
     padding: 10px 16px;
     border-radius: 8px;
@@ -267,7 +267,7 @@ body {
 
 .back-btn:hover {
     background: #475569;
-    color: white;
+    color: #2563eb;
 }
 
 .react-calendar {
@@ -308,7 +308,7 @@ body {
 
 .react-calendar__navigation button:disabled {
     background: none;
-    color: #cbd5e1;
+    color: blue;
 }
 
 .react-calendar__month-view__weekdays {
@@ -514,9 +514,183 @@ body {
     font-weight: bold;
 }
 
+/* NEUE STILE FÜR ALLE-PLÄTZE-ANSICHT */
+
+.all-courts-section {
+    margin: 2rem 0;
+    width: 100%;
+}
+
+.all-courts-section h2 {
+    color: #2563eb;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.all-courts-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: #4CAF50 #f0f0f0;
+}
+
+.all-courts-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.all-courts-container::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.all-courts-container::-webkit-scrollbar-thumb {
+    background: #4CAF50;
+    border-radius: 4px;
+}
+
+.court-column {
+    flex: 0 0 auto;
+    width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.court-column:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.court-header {
+    background: #2563eb;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.court-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.court-times {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.time-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    color: #2563eb;
+    font-weight: 500;
+}
+
+.time-slot:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    border-color: #2563eb;
+}
+
+.time-slot.selected {
+    background: #2563eb;
+    color: white;
+    border-color: #1e40af;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.time-slot.disabled {
+    background: #fef2f2;
+    color: #dc2626;
+    cursor: not-allowed;
+    border-color: #fecaca;
+    position: relative;
+    overflow: hidden;
+}
+
+.time-slot.disabled::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 40%, rgba(220, 38, 38, 0.1) 50%, transparent 60%);
+    background-size: 200% 200%;
+    animation: shimmer 2s infinite;
+    z-index: 1;
+}
+
+.time-slot.my-booking {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #22c55e;
+}
+
+.time-slot.my-booking:hover {
+    background: #bbf7d0;
+    border-color: #16a34a;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+.time-label {
+    font-weight: 500;
+}
+
+.slot-status {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.my-bookings-section {
+    margin-top: 2rem;
+    padding: 1rem;
+    border-top: 2px solid #eee;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.my-bookings-section h2 {
+    color: #2563eb;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.my-bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .page {
         padding: 15px;
+        max-width: 100%;
     }
 
     .header h1 {
@@ -560,6 +734,28 @@ body {
     .auth-warning {
         padding: 15px;
     }
+
+    /* Responsive für alle-Plätze-Ansicht */
+    .all-courts-container {
+        flex-direction: column;
+        overflow-x: visible;
+        gap: 1.5rem;
+    }
+
+    .court-column {
+        width: 100%;
+    }
+
+    .court-times {
+        max-height: 300px;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        display: grid;
+    }
+
+    .time-slot {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
 }
 
 .slot-btn.disabled {
@@ -599,5 +795,1163 @@ body {
     }
     100% {
         background-position: 200% 200%;
+    }
+}
+
+/* Booking.css - Ergänzungen für Mitgliedsbeitrags-Prüfung */
+
+.membership-warning {
+    background: #fffbeb;
+    border: 2px solid #f59e0b;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    color: #92400e;
+}
+
+.membership-warning h3 {
+    color: #d97706;
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+}
+
+.membership-warning p {
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+}
+
+.membership-status {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.membership-status.unpaid {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+}
+
+.warning-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.profile-btn {
+    background: linear-gradient(45deg, #1e40af, #1d4ed8);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.profile-btn:hover {
+    background: white;
+    color: #1e40af;
+    border: 2px solid #1e40af;
+    transform: translateY(-2px);
+}
+
+.refresh-btn {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 2px solid #d1d5db;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+    transform: translateY(-2px);
+}
+
+.membership-info {
+    background: #f0f9ff;
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.membership-status-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.membership-status-badge.paid {
+    background: linear-gradient(45deg, #10b981, #059669);
+    color: white;
+    border: 2px solid #059669;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.inline-login-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.inline-login-btn:hover {
+    background: #1e40af;
+}
+
+/* Deaktiviere Zeit-Slots wenn Mitgliedsbeitrag nicht bezahlt */
+.time-slot:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .membership-warning {
+        padding: 15px;
+    }
+
+    .membership-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .warning-actions {
+        flex-direction: column;
+    }
+
+    .profile-btn, .refresh-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Booking.css - Neue Styles */
+
+.error-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.inline-refresh-btn {
+    background: linear-gradient(45deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.inline-refresh-btn:hover {
+    background: #1e40af;
+}
+
+.inline-clear-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.inline-clear-btn:hover {
+    background: #4b5563;
+}
+
+.status-info {
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 6px;
+    margin: 10px 0;
+    border: 1px solid #e5e7eb;
+}
+
+.status-info p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+.small-refresh-btn {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.small-refresh-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+/* Booking.css - Stundenlimit Styles */
+
+.hours-limit-info {
+    background: #f0f9ff;
+    border: 2px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.hours-limit-info h4 {
+    color: #0369a1;
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+}
+
+.hours-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hours-stats {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+}
+
+.hours-booked {
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.hours-separator {
+    color: #6b7280;
+}
+
+.hours-max {
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.hours-progress-bar {
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.hours-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.hours-remaining {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.hours-remaining-text.positive {
+    color: #059669;
+}
+
+.hours-remaining-text.negative {
+    color: #dc2626;
+}
+
+.hours-limit-reached {
+    background: #fef2f2;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.hours-limit-reached h3 {
+    color: #dc2626;
+    margin: 0 0 10px 0;
+}
+
+.hours-limit-disabled {
+    background: #f3f4f6 !important;
+    color: #9ca3af !important;
+    border-color: #d1d5db !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.hours-limit-disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.hours-summary {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.hours-summary p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.selected-date-container {
+    margin-top: 15px;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .hours-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .hours-limit-info {
+        padding: 12px;
+    }
+}
+
+/* Stundeninfo Card */
+.hours-info-card {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.hours-info-card h4 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1rem;
+}
+
+.hours-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.hours-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e40af;
+}
+
+.stat-value.available {
+    color: #059669;
+}
+
+.stat-value.unavailable {
+    color: #dc2626;
+}
+
+.hours-status {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.hours-status.available {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.hours-status.unavailable {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.booking-restriction {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border-radius: 6px;
+    border: 1px solid #fbbf24;
+    margin-bottom: 10px;
+}
+
+.restriction-icon {
+    font-size: 1rem;
+}
+
+.restriction-text {
+    color: #92400e;
+    font-weight: 500;
+}
+
+.refresh-hours-btn {
+    width: 100%;
+    padding: 8px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.refresh-hours-btn:hover {
+    background: #2563eb;
+}
+
+/* Time-Slot Styles für nicht buchbare Zeiten */
+.time-slot.cannot-book {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8fafc !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+
+.time-slot.cannot-book:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.time-slot.cannot-book .slot-status {
+    color: #94a3b8;
+}
+
+/* BLUE STYLES FOR LOCKED/ADMIN-BOOKED TIME SLOTS */
+
+/* Blauer Hintergrund für gesperrte/Admin-Buchungen */
+.slot-btn.admin-booked {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border: 2px solid #93c5fd !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    position: relative;
+}
+
+.slot-btn.admin-booked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+}
+
+/* Blauer Status-Label für Admin-Buchungen */
+.slot-btn.admin-booked .status-label {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #1e40af !important;
+    border: 1px solid rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Blauer Shimmer-Effekt für Admin-Buchungen */
+.slot-btn.admin-booked::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+    transparent 40%,
+    rgba(37, 99, 235, 0.1) 50%,
+    transparent 60%);
+    background-size: 200% 200%;
+    animation: shimmer 3s infinite;
+    z-index: 1;
+}
+
+/* Für die alle-Plätze-Ansicht (All Courts View) */
+.time-slot.admin-booked {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border: 2px solid #93c5fd !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    position: relative;
+}
+
+.time-slot.admin-booked:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+}
+
+/* Icon für Admin-Buchungen */
+.time-slot.admin-booked .slot-status {
+    color: #1e40af !important;
+    font-size: 1rem;
+}
+
+/* Spezieller Status-Text für Admin-Buchungen */
+.admin-booked-label {
+    background: rgba(37, 99, 235, 0.2);
+    color: #1e40af;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    margin-top: 4px;
+}
+
+/* Falls gewünscht: Custom Icon für gesperrte Plätze */
+.slot-btn.admin-booked::before {
+    content: "🔒";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    z-index: 2;
+}
+
+.time-slot.admin-booked::before {
+    content: "🔒";
+    margin-right: 5px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Falls der Platz sowohl gesperrt als auch deine eigene Buchung ist */
+.slot-btn.admin-booked.my-booking {
+    background: linear-gradient(45deg, #dcfce7, #dbeafe) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .slot-btn.admin-booked {
+        padding: 8px 6px;
+    }
+
+    .time-slot.admin-booked {
+        padding: 8px 10px;
+    }
+
+    .admin-booked-label {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+}
+
+/* ENTRY TYPE STYLES - DIFFERENT COLORS FOR EACH TYPE */
+
+/* Buchung - Grün */
+.time-slot.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+}
+
+/* Kurs - Orange */
+.time-slot.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa) !important;
+    color: #9a3412 !important;
+    border: 2px solid #f97316 !important;
+}
+
+/* Turnier - Lila */
+.time-slot.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff) !important;
+    color: #6b21a8 !important;
+    border: 2px solid #a855f7 !important;
+}
+
+/* Gesperrt - Blau */
+.time-slot.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe) !important;
+    color: #1e40af !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+/* Meine Buchung - Dunkelgrün */
+.time-slot.my-booking {
+    background: linear-gradient(45deg, #bbf7d0, #86efac) !important;
+    color: #14532d !important;
+    border: 2px solid #16a34a !important;
+    font-weight: 600 !important;
+}
+
+/* Belegt (Disabled) - Rot */
+.time-slot.disabled {
+    background: linear-gradient(45deg, #fee2e2, #fecaca) !important;
+    color: #991b1b !important;
+    border: 2px solid #ef4444 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Ausgewählt - Dunkelblau */
+.time-slot.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af) !important;
+    color: white !important;
+    border: 2px solid #1e3a8a !important;
+}
+
+/* Entry Type Label */
+.entry-type-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ENTRY TYPE SELECTOR FOR ADMINS */
+.entry-type-selector {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+}
+
+.entry-type-selector h3 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.entry-type-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.entry-type-btn {
+    padding: 12px 8px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.entry-type-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.entry-type-btn.selected {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid #1e40af;
+}
+
+/* Farben für die Entry-Type Buttons */
+.entry-type-btn.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    border-color: #22c55e;
+}
+
+.entry-type-btn.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa);
+    color: #9a3412;
+    border-color: #f97316;
+}
+
+.entry-type-btn.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff);
+    color: #6b21a8;
+    border-color: #a855f7;
+}
+
+.entry-type-btn.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe);
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+.selected-entry-type-info {
+    text-align: center;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 6px;
+    color: #1e40af;
+    font-weight: 500;
+}
+
+/* LEGENDE */
+.entry-types-legend {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+}
+
+.entry-types-legend h3 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.legend-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+}
+
+.legend-color.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+    border-color: #22c55e;
+}
+
+.legend-color.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa);
+    border-color: #f97316;
+}
+
+.legend-color.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff);
+    border-color: #a855f7;
+}
+
+.legend-color.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe);
+    border-color: #3b82f6;
+}
+
+.legend-color.my-booking {
+    background: linear-gradient(45deg, #bbf7d0, #86efac);
+    border-color: #16a34a;
+}
+
+.legend-color.disabled {
+    background: linear-gradient(45deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+}
+
+.legend-color.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af);
+    border-color: #1e3a8a;
+}
+
+/* ICONS für verschiedene Entry Types */
+.time-slot .slot-status {
+    font-size: 1.1rem;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .entry-type-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .legend-items {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-type-btn {
+        padding: 10px 6px;
+        font-size: 0.85rem;
+    }
+
+    .time-slot .entry-type-label {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .entry-type-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* NEUE STYLES FÜR BUCHUNGEN VON ANDEREN USERN */
+
+/* Buchung vom aktuellen User - GRÜN */
+.time-slot.my-booking {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0) !important;
+    color: #166534 !important;
+    border: 2px solid #22c55e !important;
+    cursor: not-allowed !important;
+}
+
+/* Buchung von anderen Usern - ROT */
+.time-slot.other-booking {
+    background: linear-gradient(45deg, #fee2e2, #fecaca) !important;
+    color: #991b1b !important;
+    border: 2px solid #ef4444 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Kurs - ORANGE */
+.time-slot.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa) !important;
+    color: #9a3412 !important;
+    border: 2px solid #f97316 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Turnier - LILA */
+.time-slot.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff) !important;
+    color: #6b21a8 !important;
+    border: 2px solid #a855f7 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Gesperrt - BLAU */
+.time-slot.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe) !important;
+    color: #1e40af !important;
+    border: 2px solid #3b82f6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+
+/* Frei - GRAU (Standard) */
+.time-slot:not(.my-booking):not(.other-booking):not(.course-type):not(.tournament-type):not(.locked-type):not(.selected) {
+    background: linear-gradient(45deg, #f8fafc, #f1f5f9) !important;
+    color: #374151 !important;
+    border: 2px solid #d1d5db !important;
+}
+
+/* Ausgewählt - DUNKELBLAU */
+.time-slot.selected {
+    background: linear-gradient(45deg, #2563eb, #1e40af) !important;
+    color: white !important;
+    border: 2px solid #1e3a8a !important;
+}
+
+/* Slot Status Text */
+.slot-status-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* LEGENDE-FARBEN FÜR ANDERE BUCHUNGEN */
+.legend-color.other-booking {
+    background: linear-gradient(45deg, #fee2e2, #fecaca);
+    border-color: #ef4444;
+}
+
+/* Hover-Effekte nur für freie Slots */
+.time-slot:not(.my-booking):not(.other-booking):not(.course-type):not(.tournament-type):not(.locked-type):not(.selected):hover {
+    background: linear-gradient(45deg, #e0f2fe, #dbeafe) !important;
+    color: #1e40af !important;
+    border-color: #93c5fd !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* Status-Label im Button */
+.time-slot .slot-status {
+    font-size: 1.2rem;
+    margin-bottom: 3px;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .slot-status-text {
+        font-size: 0.65rem;
+        padding: 1px 4px;
+    }
+
+    .time-slot .slot-status {
+        font-size: 1rem;
+    }
+}
+
+.entry-type-selector {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e5e7eb;
+}
+
+.entry-type-selector h3 {
+    margin: 0 0 15px 0;
+    color: #1e40af;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.selector-description {
+    text-align: center;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+    font-size: 0.95rem;
+}
+
+/* NEUE KARTEN-LAYOUT FÜR ENTRY TYPES */
+.entry-type-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+    .entry-type-options {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.entry-type-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+}
+
+.entry-type-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #93c5fd;
+}
+
+.entry-type-card.selected {
+    border: 2px solid #1e40af;
+    background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+}
+
+.entry-type-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    border: 2px solid;
+}
+
+.entry-type-icon.booking-type {
+    background: linear-gradient(45deg, #dcfce7, #bbf7d0);
+    color: #166534;
+    border-color: #22c55e;
+}
+
+.entry-type-icon.course-type {
+    background: linear-gradient(45deg, #ffedd5, #fed7aa);
+    color: #9a3412;
+    border-color: #f97316;
+}
+
+.entry-type-icon.tournament-type {
+    background: linear-gradient(45deg, #f3e8ff, #e9d5ff);
+    color: #6b21a8;
+    border-color: #a855f7;
+}
+
+.entry-type-icon.locked-type {
+    background: linear-gradient(45deg, #dbeafe, #e0f2fe);
+    color: #1e40af;
+    border-color: #3b82f6;
+}
+
+.entry-type-content {
+    flex: 1;
+    width: 100%;
+}
+
+.entry-type-content h4 {
+    margin: 0 0 5px 0;
+    color: #1e40af;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.entry-type-content p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.entry-type-radio {
+    margin-top: 10px;
+}
+
+.entry-type-radio input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.selected-entry-type-info {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    margin-top: 20px;
+}
+
+.current-selection {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.selection-icon {
+    font-size: 2.5rem;
+    display: block;
+}
+
+.selection-name {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 1.1rem;
+    margin: 5px 0;
+}
+
+.selection-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Cancel Button */
+.cancel-selector-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 15px;
+    width: 100%;
+    transition: all 0.3s;
+}
+
+.cancel-selector-btn:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+/* Booking Summary Styles */
+.booking-summary .summary-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.summary-item {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+}
+
+.summary-label {
+    display: block;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.summary-value {
+    display: block;
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 480px) {
+    .entry-type-options {
+        grid-template-columns: 1fr;
+    }
+
+    .current-selection {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .booking-summary .summary-details {
+        grid-template-columns: 1fr;
     }
 }

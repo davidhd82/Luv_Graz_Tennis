@@ -3,18 +3,31 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Login from "../views/Login.tsx";
 
+// Mock navigate()
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...actual,
+        useNavigate: () => vi.fn()
+    };
+});
+
 describe('Login component', () => {
+
     beforeEach(() => {
         vi.clearAllMocks();
+        localStorage.clear();
     });
 
-    it('renders inputs and button', () => {
+    const renderLogin = (onAuthSuccess = vi.fn()) =>
         render(
             <BrowserRouter>
-                <Login onAuthSuccess={vi.fn()} />
+                <Login onAuthSuccess={onAuthSuccess} />
             </BrowserRouter>
         );
 
+    it('renders inputs and button', () => {
+        renderLogin();
         expect(screen.getByLabelText(/E-Mail/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Passwort/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Anmelden/i })).toBeInTheDocument();
@@ -26,30 +39,22 @@ describe('Login component', () => {
             json: async () => ({})
         });
 
-        render(
-            <BrowserRouter>
-                <Login onAuthSuccess={vi.fn()} />
-            </BrowserRouter>
-        );
+        renderLogin();
 
         fireEvent.change(screen.getByLabelText(/E-Mail/i), {
-            target: { value: 'nonexistent@example.com' }
+            target: { value: 'wrong@example.com' }
         });
         fireEvent.change(screen.getByLabelText(/Passwort/i), {
-            target: { value: 'password123' }
+            target: { value: 'incorrect123' }
         });
+
         fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
-        const error = await screen.findByText(/Ungültige Anmeldedaten/i);
-        expect(error).toBeInTheDocument();
+        expect(await screen.findByText(/Ungültige Anmeldedaten/i)).toBeInTheDocument();
     });
 
     it('updates input values on change', () => {
-        render(
-            <BrowserRouter>
-                <Login onAuthSuccess={vi.fn()} />
-            </BrowserRouter>
-        );
+        renderLogin();
 
         const emailInput = screen.getByLabelText(/E-Mail/i) as HTMLInputElement;
         const passwordInput = screen.getByLabelText(/Passwort/i) as HTMLInputElement;
@@ -61,13 +66,16 @@ describe('Login component', () => {
         expect(passwordInput.value).toBe('password123');
     });
 
-    it('calls onAuthSuccess and navigates on successful login', async () => {
+    it('calls onAuthSuccess, stores data, and navigates on successful login', async () => {
         const mockOnAuthSuccess = vi.fn();
+
         const mockResponse = {
             token: 'test-token',
             email: 'test@example.com',
             firstName: 'Max',
-            lastName: 'Mustermann'
+            lastName: 'Mustermann',
+            userId: 10,
+            isAdmin: true
         };
 
         globalThis.fetch = vi.fn().mockResolvedValueOnce({
@@ -75,11 +83,7 @@ describe('Login component', () => {
             json: async () => mockResponse
         });
 
-        render(
-            <BrowserRouter>
-                <Login onAuthSuccess={mockOnAuthSuccess} />
-            </BrowserRouter>
-        );
+        renderLogin(mockOnAuthSuccess);
 
         fireEvent.change(screen.getByLabelText(/E-Mail/i), {
             target: { value: 'test@example.com' }
@@ -87,26 +91,41 @@ describe('Login component', () => {
         fireEvent.change(screen.getByLabelText(/Passwort/i), {
             target: { value: 'password123' }
         });
+
         fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
         await waitFor(() => {
-            expect(mockOnAuthSuccess).toHaveBeenCalledWith('test-token', mockResponse);
+            const expectedUser = {
+                userId: 10,
+                email: "test@example.com",
+                firstName: "Max",
+                lastName: "Mustermann",
+                isAdmin: true
+            };
+
+            expect(mockOnAuthSuccess).toHaveBeenCalledWith('test-token', expectedUser);
+
+            // check localStorage
+            expect(localStorage.getItem('token')).toBe('test-token');
+            expect(JSON.parse(localStorage.getItem('user')!)).toEqual(expectedUser);
         });
     });
 
     it('shows loading state during login', async () => {
-        globalThis.fetch = vi.fn().mockImplementationOnce(() =>
-            new Promise(resolve => setTimeout(() => resolve({
-                ok: false,
-                json: async () => ({})
-            }), 100))
+        globalThis.fetch = vi.fn().mockImplementationOnce(
+            () => new Promise(resolve =>
+                setTimeout(
+                    () =>
+                        resolve({
+                            ok: false,
+                            json: async () => ({})
+                        }),
+                    80
+                )
+            )
         );
 
-        render(
-            <BrowserRouter>
-                <Login onAuthSuccess={vi.fn()} />
-            </BrowserRouter>
-        );
+        renderLogin();
 
         fireEvent.change(screen.getByLabelText(/E-Mail/i), {
             target: { value: 'test@example.com' }
@@ -114,9 +133,13 @@ describe('Login component', () => {
         fireEvent.change(screen.getByLabelText(/Passwort/i), {
             target: { value: 'password123' }
         });
+
         fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
+        // loading text appears
         expect(screen.getByText('Lädt...')).toBeInTheDocument();
+
+        // button disabled
         expect(screen.getByRole('button')).toBeDisabled();
     });
 });

@@ -57,8 +57,8 @@ export default function EmailVerificationPending() {
 
         setResending(true);
         try {
-            //const response = await fetch('http://localhost:8080/api/auth/resend-verification', {
-            const response = await fetch('https://kainhaus.uber.space/api/auth/resend-verification', {
+            //const response = await fetch('https://kainhaus.uber.space/api/auth/resend-verification', {
+            const response = await fetch('http://localhost:8080/api/auth/resend-verification', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,12 +86,9 @@ export default function EmailVerificationPending() {
     const handleCheckVerification = async () => {
         setChecking(true);
         try {
-            /*const response = await fetch(
-                `http://localhost:8080/api/auth/check-verification?email=${encodeURIComponent(email)}`
-            );*/
-            const response = await fetch(
-                `https://kainhaus.uber.space/api/auth/check-verification?email=${encodeURIComponent(email)}`
-            );
+            /*            const response = await fetch(`https://kainhaus.uber.space/api/auth/check-verification?email=${encodeURIComponent(email)}`);*/
+
+            const response = await fetch(`http://localhost:8080/api/auth/check-verification?email=${encodeURIComponent(email)}`);
 
             if (response.ok) {
                 const userData: CheckVerificationResponse = await response.json();

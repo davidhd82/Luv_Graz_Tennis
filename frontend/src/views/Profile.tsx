@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
 
 interface User {
-    id: string;
+    userId: number; // Geändert von id zu userId
     salutation: string;
     title: string;
     firstName: string;
@@ -13,6 +13,9 @@ interface User {
     postalCode: string;
     city: string;
     mobile: string;
+    isAdmin: boolean; // Geändert von admin zu isAdmin
+    enabled?: boolean; // Optional
+    membershipPaid?: boolean; // Optional
 }
 
 export default function Profile() {
@@ -33,9 +36,8 @@ export default function Profile() {
                 return;
             }
 
-
-            //const response = await fetch('http://localhost:8080/api/user/me', {
-            const response = await fetch('https://kainhaus.uber.space/api/user/me', {
+            // const response = await fetch('https://kainhaus.uber.space/api/user/me', {
+            const response = await fetch('http://localhost:8080/api/user/me', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -44,12 +46,56 @@ export default function Profile() {
             });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    navigate('/login');
+                    return;
+                }
                 throw new Error('Fehler beim Laden der Benutzerdaten');
             }
 
             const userData = await response.json();
-            setUser(userData);
+            console.log('User data from /api/user/me:', userData); // Debug log
+
+            // Stelle sicher, dass die Felder korrekt gemappt werden
+            const formattedUser: User = {
+                userId: userData.userId || userData.id || 0,
+                salutation: userData.salutation || '',
+                title: userData.title || '',
+                firstName: userData.firstName || '',
+                lastName: userData.lastName || '',
+                email: userData.email || '',
+                street: userData.street || '',
+                postalCode: userData.postalCode || '',
+                city: userData.city || '',
+                mobile: userData.mobile || '',
+                isAdmin: userData.isAdmin || userData.admin || false,
+                enabled: userData.enabled,
+                membershipPaid: userData.membershipPaid
+            };
+
+            setUser(formattedUser);
+
+            // Update localStorage user data
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                const userObj = JSON.parse(storedUser);
+                userObj.userId = formattedUser.userId;
+                userObj.isAdmin = formattedUser.isAdmin;
+                localStorage.setItem('user', JSON.stringify(userObj));
+            } else {
+                // Falls kein user im localStorage existiert, erstelle einen
+                localStorage.setItem('user', JSON.stringify({
+                    userId: formattedUser.userId,
+                    email: formattedUser.email,
+                    firstName: formattedUser.firstName,
+                    lastName: formattedUser.lastName,
+                    isAdmin: formattedUser.isAdmin
+                }));
+            }
         } catch (err: any) {
+            console.error('Error fetching user:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -67,8 +113,8 @@ export default function Profile() {
 
         try {
             const token = localStorage.getItem('token');
-            //const response = await fetch('http://localhost:8080/api/user/delete', {
-            const response = await fetch('https://kainhaus.uber.space/api/user/delete', {
+            // const response = await fetch('https://kainhaus.uber.space/api/user/delete', {
+            const response = await fetch('http://localhost:8080/api/user/delete', {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -82,10 +128,32 @@ export default function Profile() {
                 navigate('/');
                 window.location.reload();
             } else {
+                if (response.status === 403) {
+                    throw new Error('Keine Berechtigung zum Löschen des Kontos');
+                }
+                if (response.status === 404) {
+                    throw new Error('Konto nicht gefunden');
+                }
                 throw new Error('Löschen fehlgeschlagen');
             }
         } catch (err: any) {
             setError(err.message);
+        }
+    };
+
+    const handleAdminDashboard = () => {
+        if (user?.isAdmin) {
+            navigate('/admin');
+        }
+    };
+
+    const handleMembershipInfo = () => {
+        if (user?.membershipPaid === false) {
+            alert('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Bitte wenden Sie sich an den Administrator, um Buchungen vornehmen zu können.');
+        } else if (user?.membershipPaid === true) {
+            alert('Ihr Mitgliedsbeitrag ist bezahlt. Sie können Tennisplätze buchen!');
+        } else {
+            alert('Mitgliedsstatus konnte nicht überprüft werden.');
         }
     };
 
@@ -101,6 +169,9 @@ export default function Profile() {
         return (
             <div className="profile-container">
                 <div className="error-message">{error}</div>
+                <button className="back-btn" onClick={() => navigate('/')} style={{ marginTop: '20px' }}>
+                    ← Zurück zur Startseite
+                </button>
             </div>
         );
     }
@@ -122,6 +193,18 @@ export default function Profile() {
                     <div className="profile-name">
                         <h2>{user?.salutation} {user?.title} {user?.firstName} {user?.lastName}</h2>
                         <p>{user?.email}</p>
+                        {user?.isAdmin && (
+                            <div className="admin-tag">
+                                <span className="admin-badge">👑 ADMIN</span>
+                            </div>
+                        )}
+                        {user?.membershipPaid !== undefined && (
+                            <div className="membership-tag">
+                                <span className={`membership-badge ${user.membershipPaid ? 'paid' : 'not-paid'}`}>
+                                    {user.membershipPaid ? '✅ Mitgliedsbeitrag bezahlt' : '⚠️ Mitgliedsbeitrag offen'}
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -179,7 +262,45 @@ export default function Profile() {
                     </div>
                 </div>
 
+                <div className="profile-section">
+                    <h3>Konto-Status</h3>
+                    <div className="info-grid">
+                        <div className="info-item">
+                            <label>Konto aktiv:</label>
+                            <span className={`status-badge ${user?.enabled ? 'active' : 'inactive'}`}>
+                                {user?.enabled ? 'Aktiv' : 'Inaktiv'}
+                            </span>
+                        </div>
+                        <div className="info-item">
+                            <label>Mitgliedsstatus:</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span className={`membership-status-badge ${user?.membershipPaid ? 'paid' : 'not-paid'}`}>
+                                    {user?.membershipPaid ? 'Bezahlt' : 'Offen'}
+                                </span>
+                                <button
+                                    onClick={handleMembershipInfo}
+                                    className="info-btn"
+                                    title="Informationen zum Mitgliedsstatus"
+                                >
+                                    ℹ️
+                                </button>
+                            </div>
+                        </div>
+                        {user?.isAdmin && (
+                            <div className="info-item">
+                                <label>Rolle:</label>
+                                <span className="admin-role-badge">Administrator</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 <div className="profile-actions">
+                    {user?.isAdmin && (
+                        <button className="admin-btn" onClick={handleAdminDashboard}>
+                            👑 Admin Dashboard
+                        </button>
+                    )}
                     <button className="edit-btn" onClick={handleEdit}>
                         Profil bearbeiten
                     </button>

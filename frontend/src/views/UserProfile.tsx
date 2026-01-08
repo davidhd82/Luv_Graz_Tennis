@@ -27,12 +27,17 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
         setIsOpen(false);
     };
 
+    const handleAdminClick = () => {
+        navigate('/admin');
+        setIsOpen(false);
+    };
+
     return (
         <div className="user-profile">
             <div className="user-menu" onClick={() => setIsOpen(!isOpen)}>
-        <span className="user-greeting">
-          Hallo, {user.firstName}!
-        </span>
+                <span className="user-greeting">
+                    Hallo, {user.firstName}!
+                </span>
                 <span className="dropdown-arrow">▼</span>
             </div>
 
@@ -45,14 +50,16 @@ export default function UserProfile({ user, onLogout }: UserProfileProps) {
                     </div>
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item" onClick={handleProfileClick}>
-                        Mein Profil
+                        👤 Mein Profil
                     </button>
-                    <button className="dropdown-item" onClick={handleSettingsClick}>
-                        ⚙Einstellungen
-                    </button>
+                    {user.isAdmin && (
+                        <button className="dropdown-item admin-item" onClick={handleAdminClick}>
+                            👑 Admin Dashboard
+                        </button>
+                    )}
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item logout-btn" onClick={handleLogout}>
-                        Abmelden
+                        🚪 Abmelden
                     </button>
                 </div>
             )}

@@ -43,8 +43,8 @@ export default function Register({ onAuthSuccess }: RegisterProps) {
         }
 
         try {
-            //const response = await fetch('http://localhost:8080/api/auth/register', {
-            const response = await fetch('https://kainhaus.uber.space/register', {
+            // const response = await fetch('https://kainhaus.uber.space/register', {
+            const response = await fetch('http://localhost:8080/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
