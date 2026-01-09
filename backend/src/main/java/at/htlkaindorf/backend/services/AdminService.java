@@ -27,7 +27,23 @@ public class AdminService {
     private final EntryRepository entryRepository;
     private final EntryMapper entryMapper;
 
+    public void updateExpiredMemberships() {
+        LocalDate today = LocalDate.now();
+
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            if (user.getMembershipEndDate() != null &&
+                    user.getMembershipEndDate().isBefore(today)) {
+
+                user.setMembershipPaid(false);
+            }
+        }
+    }
+
     public List<UserDto> getAllUsers() {
+        updateExpiredMemberships();
+
         return userRepository.findAll()
                 .stream()
                 .map(userMapper::toUserDTO)
@@ -47,10 +63,25 @@ public class AdminService {
     }
 
     public UserDto updateMembershipStatus(Long id, boolean membershipPaid) {
-        User user = userRepository.findById(id).orElseThrow();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         user.setMembershipPaid(membershipPaid);
+
+        if (membershipPaid) {
+            LocalDate today = LocalDate.now();
+            LocalDate endDate = user.getMembershipEndDate();
+
+            if (endDate != null && endDate.isAfter(today)) {
+                user.setMembershipEndDate(endDate.plusYears(1));
+            } else {
+                user.setMembershipEndDate(today.plusYears(1));
+            }
+        }
+
         return userMapper.toUserDTO(userRepository.save(user));
     }
+
 
     public List<EntryDto> getFutureEntries() {
         LocalDate today = LocalDate.now();
