@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Admin.css';
 
-// Interface basierend auf deinem UserDto
 interface User {
     userId: number;
     firstName: string;
@@ -47,7 +46,8 @@ export default function AdminPage() {
     const [activeTab, setActiveTab] = useState<'users' | 'bookings'>('users');
     const [filterDate, setFilterDate] = useState<string>('');
     const [searchTerm, setSearchTerm] = useState('');
-    const [editingHours, setEditingHours] = useState<number | null>(null);
+    const [editingUserId, setEditingUserId] = useState<number | null>(null);
+    const [editingField, setEditingField] = useState<'admin' | 'membership' | 'hours' | null>(null);
     const [tempHoursValue, setTempHoursValue] = useState<string>('');
 
     const navigate = useNavigate();
@@ -77,7 +77,6 @@ export default function AdminPage() {
             }
 
             const userData = await response.json();
-            setCurrentUserId(userData.userId);
             localStorage.setItem('userId', userData.userId.toString());
         } catch (err: any) {
             console.error('Error fetching current user:', err);
@@ -111,7 +110,6 @@ export default function AdminPage() {
 
             const data = await response.json();
 
-            // Korrekte Verarbeitung des Admin-Status
             const usersWithCorrectAdminStatus = data.map((user: any) => {
                 const isAdminValue = user.isAdmin !== undefined ? user.isAdmin :
                     user.admin !== undefined ? user.admin : false;
@@ -185,11 +183,9 @@ export default function AdminPage() {
 
             const updatedUser = await response.json();
 
-            // Korrekte Verarbeitung der Antwort
             const actualIsAdmin = updatedUser.isAdmin !== undefined ? updatedUser.isAdmin :
                 updatedUser.admin !== undefined ? updatedUser.admin : newAdminStatus;
 
-            // Update local state
             setUsers(users.map(user =>
                 user.userId === userId ? {
                     ...user,
@@ -198,7 +194,8 @@ export default function AdminPage() {
             ));
 
             setError('');
-            alert(`Admin-Status erfolgreich ${newAdminStatus ? 'aktiviert' : 'deaktiviert'}`);
+            setEditingUserId(null);
+            setEditingField(null);
 
         } catch (err: any) {
             setError(err.message);
@@ -235,7 +232,6 @@ export default function AdminPage() {
 
             const updatedUser = await response.json();
 
-            // Update local state
             setUsers(users.map(user =>
                 user.userId === userId ? {
                     ...user,
@@ -244,7 +240,8 @@ export default function AdminPage() {
             ));
 
             setError('');
-            alert(`Mitgliedsbeitrag ${!currentStatus ? 'als bezahlt markiert' : 'als nicht bezahlt markiert'}`);
+            setEditingUserId(null);
+            setEditingField(null);
         } catch (err: any) {
             setError(err.message);
         }
@@ -268,7 +265,6 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            // Verwendet die neue Route /booking-hours
             const response = await fetch(`http://localhost:8080/api/admin/users/${userId}/booking-hours?hours=${newHours}`, {
                 method: 'PUT',
                 headers: {
@@ -287,7 +283,6 @@ export default function AdminPage() {
 
             const updatedUser = await response.json();
 
-            // Update local state
             setUsers(users.map(user =>
                 user.userId === userId ? {
                     ...user,
@@ -295,22 +290,34 @@ export default function AdminPage() {
                 } : user
             ));
 
-            setEditingHours(null);
+            setEditingUserId(null);
+            setEditingField(null);
             setTempHoursValue('');
             setError('');
-            alert(`Buchungsstunden erfolgreich auf ${newHours} Stunden/Tag gesetzt`);
         } catch (err: any) {
             setError(err.message);
         }
     };
 
     const startEditingHours = (userId: number, currentHours: number) => {
-        setEditingHours(userId);
+        setEditingUserId(userId);
+        setEditingField('hours');
         setTempHoursValue(currentHours.toString());
     };
 
-    const cancelEditingHours = () => {
-        setEditingHours(null);
+    const startEditingAdmin = (userId: number) => {
+        setEditingUserId(userId);
+        setEditingField('admin');
+    };
+
+    const startEditingMembership = (userId: number) => {
+        setEditingUserId(userId);
+        setEditingField('membership');
+    };
+
+    const cancelEditing = () => {
+        setEditingUserId(null);
+        setEditingField(null);
         setTempHoursValue('');
     };
 
@@ -448,13 +455,13 @@ export default function AdminPage() {
                     className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
                     onClick={() => setActiveTab('users')}
                 >
-                    👥 Benutzer ({users.length})
+                    Benutzer ({users.length})
                 </button>
                 <button
                     className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
                     onClick={() => setActiveTab('bookings')}
                 >
-                    📅 Buchungen ({entries.length})
+                    Buchungen ({entries.length})
                 </button>
             </div>
 
@@ -494,118 +501,171 @@ export default function AdminPage() {
                     <table>
                         <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>E-Mail</th>
-                            <th>Admin</th>
-                            <th>Mitgliedsbeitrag</th>
-                            <th>Buchungsstunden/Tag</th>
-                            <th>Aktiv</th>
-                            <th>Aktionen</th>
+                            <th className="name-column">Name</th>
+                            <th className="email-column">E-Mail</th>
+                            <th className="admin-column">Admin</th>
+                            <th className="membership-column">Beitrag</th>
+                            <th className="hours-column">Stunden/Tag</th>
+                            <th className="status-column">Aktiv</th>
+                            <th className="actions-column">Aktionen</th>
                         </tr>
                         </thead>
                         <tbody>
                         {filteredUsers.map((user) => (
                             <tr key={user.userId}>
-                                <td>
-                                    <div className="user-info">
-                                        <div className="user-avatar">
+                                <td className="name-column">
+                                    <div className="user-info-compact">
+                                        <div className="user-avatar-small">
                                             {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                                         </div>
-                                        <div className="user-details">
-                                            <div className="user-name">
+                                        <div className="user-details-compact">
+                                            <div className="user-name-compact">
                                                 {user.salutation} {user.title} {user.firstName} {user.lastName}
                                             </div>
-                                            <div className="user-mobile">
-                                                📱 {user.mobile || 'Kein Telefon'}
+                                            <div className="user-mobile-compact">
+                                                {user.mobile || 'Kein Telefon'}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{user.email}</td>
-                                <td>
-                                    <div className="admin-status-container">
-                                        <span className={`admin-badge ${user.isAdmin ? 'is-admin' : 'not-admin'}`}>
-                                            {user.isAdmin ? '👑 Admin' : '👤 Benutzer'}
-                                        </span>
-                                        <button
-                                            onClick={() => handleUpdateAdminStatus(user.userId, user.isAdmin)}
-                                            className="toggle-admin-btn"
-                                            data-is-admin={user.isAdmin}
-                                            title={user.isAdmin ? 'Admin-Rechte entfernen' : 'Zu Admin machen'}
-                                        >
-                                            {user.isAdmin ? '✕' : '✓'}
-                                        </button>
-                                    </div>
+
+                                <td className="email-column">
+                                    <div className="email-text">{user.email}</div>
                                 </td>
-                                <td>
-                                    <div className="membership-status-container">
-                                        <span className={`membership-badge ${user.membershipPaid ? 'paid' : 'not-paid'}`}>
-                                            {user.membershipPaid ? '✅ Bezahlt' : '⚠️ Offen'}
-                                        </span>
-                                        <button
-                                            onClick={() => handleToggleMembershipStatus(user.userId, user.membershipPaid)}
-                                            className="toggle-membership-btn"
-                                            data-paid={user.membershipPaid}
-                                            title={user.membershipPaid ? 'Als nicht bezahlt markieren' : 'Als bezahlt markieren'}
-                                        >
-                                            {user.membershipPaid ? '✕' : '✓'}
-                                        </button>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className="hours-container">
-                                        {editingHours === user.userId ? (
-                                            <div className="hours-edit">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="24"
-                                                    value={tempHoursValue}
-                                                    onChange={(e) => setTempHoursValue(e.target.value)}
-                                                    className="hours-input"
-                                                    placeholder="Stunden"
-                                                />
-                                                <div className="hours-edit-buttons">
+
+                                <td className="admin-column">
+                                    {editingUserId === user.userId && editingField === 'admin' ? (
+                                        <div className="editing-container-compact">
+                                            <div className="editing-content-compact">
+                                                <div className="editing-buttons-compact">
                                                     <button
-                                                        onClick={() => handleUpdateBookingHours(user.userId)}
-                                                        className="save-hours-btn"
+                                                        onClick={() => handleUpdateAdminStatus(user.userId, user.isAdmin)}
+                                                        className="confirm-edit-btn"
+                                                        title="Ja"
                                                     >
                                                         ✓
                                                     </button>
                                                     <button
-                                                        onClick={cancelEditingHours}
-                                                        className="cancel-hours-btn"
+                                                        onClick={cancelEditing}
+                                                        className="cancel-edit-btn"
+                                                        title="Nein"
                                                     >
                                                         ✕
                                                     </button>
                                                 </div>
                                             </div>
-                                        ) : (
-                                            <div className="hours-display">
-                                                <span className={`hours-badge ${(user.maxDailyBookingHours || 0) > 0 ? 'has-hours' : 'no-hours'}`}>
-                                                    {user.maxDailyBookingHours || 2} Std.
-                                                </span>
-                                                <button
-                                                    onClick={() => startEditingHours(user.userId, user.maxDailyBookingHours || 2)}
-                                                    className="edit-hours-btn"
-                                                    title="Buchungsstunden bearbeiten"
-                                                >
-                                                    ✎
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="clickable-field-compact"
+                                            onClick={() => startEditingAdmin(user.userId)}
+                                            title={user.isAdmin ? 'Admin entfernen?' : 'Zu Admin machen?'}
+                                        >
+                                            <span className={`admin-badge-compact ${user.isAdmin ? 'is-admin' : 'not-admin'}`}>
+                                                {user.isAdmin ? 'Admin' : 'Benutzer'}
+                                            </span>
+                                        </div>
+                                    )}
                                 </td>
-                                <td>
-                                    <span className={`status-badge ${user.enabled ? 'active' : 'inactive'}`}>
-                                        {user.enabled ? '✅ Aktiv' : '⭕ Inaktiv'}
+
+                                {/* Mitgliedsbeitrag - Kompakt */}
+                                <td className="membership-column">
+                                    {editingUserId === user.userId && editingField === 'membership' ? (
+                                        <div className="editing-container-compact">
+                                            <div className="editing-content-compact">
+                                                <div className="editing-buttons-compact">
+                                                    <button
+                                                        onClick={() => handleToggleMembershipStatus(user.userId, user.membershipPaid)}
+                                                        className="confirm-edit-btn"
+                                                        title="Ja"
+                                                    >
+                                                        ✓
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEditing}
+                                                        className="cancel-edit-btn"
+                                                        title="Nein"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="clickable-field-compact"
+                                            onClick={() => startEditingMembership(user.userId)}
+                                            title={user.membershipPaid ? 'Als nicht bezahlt markieren?' : 'Als bezahlt markieren?'}
+                                        >
+                                            <span className={`membership-badge-compact ${user.membershipPaid ? 'paid' : 'not-paid'}`}>
+                                                {user.membershipPaid ? 'Bezahlt' : 'Offen'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </td>
+
+                                {/* Buchungsstunden - Kompakt */}
+                                <td className="hours-column">
+                                    {editingUserId === user.userId && editingField === 'hours' ? (
+                                        <div className="editing-container-compact">
+                                            <div className="editing-content-compact">
+                                                <div className="hours-edit-section-compact">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="24"
+                                                        value={tempHoursValue}
+                                                        onChange={(e) => setTempHoursValue(e.target.value)}
+                                                        className="hours-input-compact"
+                                                        placeholder="Std"
+                                                        autoFocus
+                                                    />
+                                                    <div className="editing-buttons-compact">
+                                                        <button
+                                                            onClick={() => handleUpdateBookingHours(user.userId)}
+                                                            className="confirm-edit-btn"
+                                                            disabled={!tempHoursValue.trim()}
+                                                            title="Speichern"
+                                                        >
+                                                            ✓
+                                                        </button>
+                                                        <button
+                                                            onClick={cancelEditing}
+                                                            className="cancel-edit-btn"
+                                                            title="Abbrechen"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className="clickable-field-compact hours-field-compact"
+                                            onClick={() => startEditingHours(user.userId, user.maxDailyBookingHours || 2)}
+                                            title={`Klicken zum Bearbeiten: Aktuell ${user.maxDailyBookingHours || 2} Stunden`}
+                                        >
+                                            <span className={`hours-badge-compact ${(user.maxDailyBookingHours || 0) > 0 ? 'has-hours' : 'no-hours'}`}>
+                                                {user.maxDailyBookingHours || 2}h
+                                            </span>
+                                        </div>
+                                    )}
+                                </td>
+
+                                {/* Aktiv Status - Kompakt */}
+                                <td className="status-column">
+                                    <span className={`status-badge-compact ${user.enabled ? 'active' : 'inactive'}`}>
+                                        {user.enabled ? 'Aktiv' : 'Inaktiv'}
                                     </span>
                                 </td>
-                                <td>
-                                    <div className="action-buttons">
+
+                                {/* Aktionen */}
+                                <td className="actions-column">
+                                    <div className="action-buttons-compact">
                                         <button
                                             onClick={() => handleDeleteUser(user.userId)}
-                                            className="delete-user-btn"
+                                            className="delete-user-btn-compact"
                                             title="Benutzer löschen"
                                         >
                                             Löschen
@@ -641,23 +701,22 @@ export default function AdminPage() {
                                     {new Date(entry.entryDate).toLocaleDateString('de-DE')}
                                 </td>
                                 <td>
-                                    <span className="time-badge">🕒 {entry.startHour}:00</span>
+                                    <span className="time-badge-compact">{entry.startHour}:00 Uhr</span>
                                 </td>
                                 <td>
-                                    <span className="court-badge">🎾 Platz {entry.tennisCourtId}</span>
+                                    <span className="court-badge-compact">Platz {entry.tennisCourtId}</span>
                                 </td>
-                                <td>{entry.userName}</td>
-                                <td>{entry.userEmail}</td>
+                                <td className="booking-user-column">{entry.userName}</td>
+                                <td className="booking-email-column">{entry.userEmail}</td>
                                 <td>
-                                    <span className={`type-badge ${entry.entryTypeName === 'Gesperrt' ? 'locked-badge' : ''}`}>
-                                        {entry.entryTypeName === 'Gesperrt' ? '🔒 ' : '📅 '}
+                                    <span className={`type-badge-compact ${entry.entryTypeName === 'Gesperrt' ? 'locked-badge' : ''}`}>
                                         {entry.entryTypeName}
                                     </span>
                                 </td>
                                 <td>
                                     <button
                                         onClick={() => handleDeleteBooking(entry.tennisCourtId, entry.entryDate, entry.startHour)}
-                                        className={`delete-btn ${entry.entryTypeName === 'Gesperrt' ? 'delete-locked-btn' : ''}`}
+                                        className={`delete-btn-compact ${entry.entryTypeName === 'Gesperrt' ? 'delete-locked-btn' : ''}`}
                                         title={entry.entryTypeName === 'Gesperrt' ? 'Sperrung aufheben' : 'Buchung löschen'}
                                     >
                                         {entry.entryTypeName === 'Gesperrt' ? 'Freigeben' : 'Löschen'}

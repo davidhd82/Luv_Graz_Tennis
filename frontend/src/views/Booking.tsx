@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useNavigate } from 'react-router-dom';
 import "../css/Booking.css";
+import {colors} from "@mui/material";
 
 const hours = [
     "08:00", "09:00", "10:00", "11:00",
@@ -69,28 +70,28 @@ export default function BookingPage() {
             entryTypeId: 1,
             name: "Buchung",
             colorClass: "booking-type",
-            icon: "📅",
+            icon: "B",
             description: "Normale Platzbuchung für Mitglieder"
         },
         {
             entryTypeId: 2,
             name: "Kurs",
             colorClass: "course-type",
-            icon: "🎓",
+            icon: "K",
             description: "Tennis-Kurs oder Training"
         },
         {
             entryTypeId: 3,
             name: "Turnier",
             colorClass: "tournament-type",
-            icon: "🏆",
+            icon: "T",
             description: "Turnier oder Wettkampf"
         },
         {
             entryTypeId: 4,
             name: "Gesperrt",
             colorClass: "locked-type",
-            icon: "🔒",
+            icon: "G",
             description: "Platz gesperrt (nicht buchbar)"
         }
     ];
@@ -272,7 +273,7 @@ export default function BookingPage() {
                 return;
             }
 
-            console.log(`🔄 Lade Buchungen für alle Plätze am ${dateKey}`);
+            console.log(`Lade Buchungen für alle Plätze am ${dateKey}`);
 
             const fetchPromises = courts.map(async (courtId) => {
                 try {
@@ -356,7 +357,7 @@ export default function BookingPage() {
                 entryTypeId: selectedEntryType
             };
 
-            console.log('📤 Sende Buchungsrequest:', request);
+            console.log('Sende Buchungsrequest:', request);
 
             const response = await fetch('http://localhost:8080/api/entries', {
                 method: 'POST',
@@ -451,7 +452,7 @@ export default function BookingPage() {
             const startHour = parseInt(selectedTime.split(':')[0]);
             const entryDate = formatDateKey(selectedDate);
 
-            console.log('🚀 Starte Buchung mit:', {
+            console.log('Starte Buchung mit:', {
                 tennisCourtId: selectedCourt,
                 entryDate,
                 startHour,
@@ -460,13 +461,12 @@ export default function BookingPage() {
 
             await createBooking(selectedCourt, entryDate, startHour);
 
-            console.log('🔄 Lade Buchungen nach Buchung neu...');
+            console.log('Lade Buchungen nach Buchung neu...');
             await fetchEntriesForAllCourts(selectedDate);
 
             const entryTypeName = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.name || 'Buchung';
-            const entryTypeIcon = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.icon || '📅';
 
-            alert(`${entryTypeIcon} ${entryTypeName} erfolgreich erstellt!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
+            alert(`${entryTypeName} erfolgreich erstellt!\n\nDatum: ${selectedDate.toLocaleDateString("de-DE")}\nPlatz: ${selectedCourt}\nUhrzeit: ${selectedTime}`);
 
             // Zurücksetzen auf Buchung (Type 1) nach erfolgreicher Buchung
             if (currentUser?.isAdmin) {
@@ -491,7 +491,7 @@ export default function BookingPage() {
 
             await deleteBooking(courtId, dateKey, hour);
 
-            console.log('🔄 Lade Buchungen nach Löschung neu...');
+            console.log('Lade Buchungen nach Löschung neu...');
             await fetchEntriesForAllCourts(date);
 
             alert('Buchung erfolgreich gelöscht!');
@@ -507,7 +507,7 @@ export default function BookingPage() {
     };
 
     const handleTimeClick = (courtId: number, time: string) => {
-        console.log('🖱️ Zeit geklickt:', { courtId, time });
+        console.log('Zeit geklickt:', { courtId, time });
 
         if (!isAuthenticated) {
             setError('Bitte anmelden um eine Zeit auszuwählen');
@@ -583,7 +583,7 @@ export default function BookingPage() {
     return (
         <div className="page">
             <header className="header">
-                <h1>🎾 Tennis Luv – Terminbuchung</h1>
+                <h1>Tennis Luv – Terminbuchung</h1>
                 {!isAuthenticated && (
                     <button className="login-redirect-btn" onClick={handleLoginRedirect}>
                         Anmelden
@@ -607,7 +607,7 @@ export default function BookingPage() {
                             </button>
                         )}
                         <button onClick={() => setError(null)} className="inline-clear-btn">
-                            ✕
+                            X
                         </button>
                     </div>
                 </div>
@@ -633,7 +633,7 @@ export default function BookingPage() {
                 <h2>1. Wähle ein Datum</h2>
                 <Calendar
                     onChange={(date) => {
-                        console.log('📅 Datum ausgewählt:', date);
+                        console.log('Datum ausgewählt:', date);
                         setSelectedDate(date as Date);
                         setSelectedCourt(null);
                         setSelectedTime(null);
@@ -656,12 +656,25 @@ export default function BookingPage() {
                 <section className="all-courts-section">
                     <h2>2. Verfügbarkeit aller Plätze</h2>
                     <div className="all-courts-container">
-                        {courts.map((courtId) => (
-                            <div key={courtId} className="court-column">
-                                <div className="court-header">
-                                    <h3>Platz {courtId}</h3>
-                                </div>
-                                <div className="court-times">
+                        <table className="courts-table">
+                            <thead>
+                            <tr className="table-header-row">
+                                <th className="table-header">Platz</th>
+                                {hours.map((time) => (
+                                    <th key={time} className="table-header">
+                                        {time}
+                                    </th>
+                                ))}
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {courts.map((courtId) => (
+                                <tr key={courtId}>
+                                    <td className="court-label-cell">
+                                        <div className="court-label">
+                                            Platz {courtId}
+                                        </div>
+                                    </td>
                                     {hours.map((time) => {
                                         const locked = isTimeLocked(courtId, time);
                                         const course = isCourse(courtId, time);
@@ -673,61 +686,63 @@ export default function BookingPage() {
                                         // Bestimme die CSS-Klasse basierend auf Status
                                         let typeClass = "";
                                         let titleText = "";
-                                        let icon = "✓";
+                                        let icon = "Frei";
 
                                         if (locked) {
                                             typeClass = "locked-type";
-                                            titleText = "🔒 Gesperrt";
-                                            icon = "🔒";
+                                            titleText = "Gesperrt";
+                                            icon = "Gesperrt";
                                         } else if (course) {
                                             typeClass = "course-type";
-                                            titleText = "🎓 Kurs";
-                                            icon = "🎓";
+                                            titleText = "Kurs";
+                                            icon = "Kurs";
                                         } else if (tournament) {
                                             typeClass = "tournament-type";
-                                            titleText = "🏆 Turnier";
-                                            icon = "🏆";
+                                            titleText = "Turnier";
+                                            icon = "Turnier";
                                         } else if (myBooking) {
                                             typeClass = "my-booking";
-                                            titleText = "⭐ Meine Buchung";
-                                            icon = "⭐";
+                                            titleText = "Meine Buchung";
+                                            icon = "Meine";
                                         } else if (otherBooking) {
                                             typeClass = "other-booking";
-                                            titleText = "❌ Durch andere gebucht";
-                                            icon = "❌";
+                                            titleText = "Durch andere gebucht";
+                                            icon = "Belegt";
                                         } else if (isSelected) {
                                             typeClass = "selected";
-                                            titleText = "✓ Ausgewählt";
-                                            icon = "✓";
+                                            titleText = "Ausgewählt";
+                                            icon = "Ausgewählt";
                                         }
 
                                         return (
-                                            <button
-                                                key={time}
-                                                className={`time-slot ${typeClass}`}
-                                                onClick={() => handleTimeClick(courtId, time)}
-                                                disabled={locked || course || tournament || otherBooking || myBooking}
-                                                title={titleText}
-                                            >
-                                                <span className="time-label">{time}</span>
-                                                <span className="slot-status">
-                                                    {icon}
+                                            <td key={time} className="time-slot-cell">
+                                                <button
+                                                    className={`time-slot ${typeClass}`}
+                                                    onClick={() => handleTimeClick(courtId, time)}
+                                                    disabled={locked || course || tournament || otherBooking || myBooking}
+                                                    title={titleText}
+                                                >
+                                                    <span className="time-label">{time}</span>
+                                                    <span className="slot-status">
+                                                {icon}
+                                            </span>
+                                                    {typeClass && (
+                                                        <span className="slot-status-text">
+                                                    {locked ? "Gesperrt" :
+                                                        course ? "Kurs" :
+                                                            tournament ? "Turnier" :
+                                                                myBooking ? "Meine Buchung" :
+                                                                    otherBooking ? "Belegt" : ""}
                                                 </span>
-                                                {typeClass && (
-                                                    <span className="slot-status-text">
-                                                        {locked ? "Gesperrt" :
-                                                            course ? "Kurs" :
-                                                                tournament ? "Turnier" :
-                                                                    myBooking ? "Meine Buchung" :
-                                                                        otherBooking ? "Belegt" : ""}
-                                                    </span>
-                                                )}
-                                            </button>
+                                                    )}
+                                                </button>
+                                            </td>
                                         );
                                     })}
-                                </div>
-                            </div>
-                        ))}
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             )}
@@ -735,7 +750,7 @@ export default function BookingPage() {
             {/* VERBESSERTER ENTRY-TYPE SELECTOR FÜR ADMINS */}
             {showEntryTypeSelector && currentUser?.isAdmin && selectedCourt && selectedTime && (
                 <div className="entry-type-selector">
-                    <h3>📋 Buchungstyp auswählen für Platz {selectedCourt} um {selectedTime}</h3>
+                    <h3>Buchungstyp auswählen für Platz {selectedCourt} um {selectedTime}</h3>
                     <p className="selector-description">
                         Wählen Sie den Typ der Buchung aus:
                     </p>
@@ -765,25 +780,13 @@ export default function BookingPage() {
                             </div>
                         ))}
                     </div>
-
-                    <div className="selected-entry-type-info">
-                        <div className="current-selection">
-                            <span className="selection-icon">
-                                {getCurrentEntryType().icon}
-                            </span>
-                            <div>
-                                <strong>Aktuell ausgewählt:</strong>
-                                <div className="selection-name">{getCurrentEntryType().name}</div>
-                                <div className="selection-description">{getCurrentEntryType().description}</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             )}
 
             {/* Buchungsbestätigung */}
             {selectedDate && selectedCourt && selectedTime && isAuthenticated && currentUser?.membershipPaid && (
-                <footer className="footer">
+                <div className="slots">
+                    <h2>Buchungsbestätigung</h2>
                     <div className="booking-summary">
                         <h3>Buchungsübersicht</h3>
                         <div className="summary-details">
@@ -814,19 +817,11 @@ export default function BookingPage() {
                         className="confirm-btn"
                         onClick={handleBooking}
                         disabled={loading}
-                        style={{
-                            backgroundColor: currentUser?.isAdmin
-                                ? getCurrentEntryType().colorClass === 'booking-type' ? '#10b981'
-                                    : getCurrentEntryType().colorClass === 'course-type' ? '#f97316'
-                                        : getCurrentEntryType().colorClass === 'tournament-type' ? '#a855f7'
-                                            : '#3b82f6'
-                                : '#10b981'
-                        }}
                     >
                         {loading ? 'Wird erstellt...' :
                             currentUser?.isAdmin
-                                ? `${getCurrentEntryType().icon} ${getCurrentEntryType().name} erstellen`
-                                : '📅 Jetzt buchen'}
+                                ? `${getCurrentEntryType().name} erstellen`
+                                : 'Jetzt buchen'}
                     </button>
 
                     {currentUser?.isAdmin && (
@@ -842,12 +837,12 @@ export default function BookingPage() {
                             Auswahl abbrechen
                         </button>
                     )}
-                </footer>
+                </div>
             )}
 
             {selectedDate && isAuthenticated && getMyBookings().length > 0 && (
                 <section className="my-bookings-section">
-                    <h2>📋 Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
+                    <h2>Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
                     <div className="my-bookings-list">
                         {getMyBookings().map(({ courtId, entry }) => (
                             <div key={`${courtId}-${entry.startHour}`} className="booking-item">
