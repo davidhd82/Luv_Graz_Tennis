@@ -21,9 +21,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class EntryService {
-
-    private static final int MAX_DAILY_HOURS = 2;
-
     private final EntryRepository entryRepository;
     private final EntryTypeRepository entryTypeRepository;
     private final TennisCourtRepository tennisCourtRepository;

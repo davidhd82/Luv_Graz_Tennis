@@ -29,7 +29,7 @@ body {
 
 .page {
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px; /* BREITER gemacht von 1400px */
     padding: 20px;
 }
 
@@ -226,7 +226,7 @@ body {
             0 1px 2px rgba(59, 110, 113, 0.15);
 }
 
-/* NEU: Tabellen-Layout für alle Plätze */
+/* NEU: Tabellen-Layout für alle Plätze - BREITERE GESAMTTABELLE */
 .all-courts-section {
     margin: 2rem 0;
     width: 100%;
@@ -240,7 +240,7 @@ body {
     font-weight: 600;
 }
 
-/* Tabellen-Container */
+/* Tabellen-Container - BREITER gemacht */
 .all-courts-container {
     background: var(--glass-bg);
     border-radius: 10px;
@@ -249,13 +249,15 @@ body {
     overflow: auto;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    width: 100%;
 }
 
-/* Tabellen-Stil */
+/* Tabellen-Stil - BREITERE TABELLE */
 .courts-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    min-width: 1300px; /* BREITERE GESAMTTABELLE - von 1200px auf 1300px */
 }
 
 /* Tabellen-Kopf */
@@ -310,18 +312,19 @@ body {
     font-size: 1rem;
 }
 
-/* Time-Slots Zellen */
+/* Time-Slots Zellen - MEHR ABSTAND ZWISCHEN SPALTEN */
 .time-slot-cell {
     padding: 0.3rem;
     border-bottom: 1px solid rgba(59, 110, 113, 0.1);
     border-right: 1px solid rgba(59, 110, 113, 0.1);
+    min-width: 85px; /* ETWAS BREITER für bessere Verteilung */
 }
 
 .time-slot-cell:last-child {
     border-right: none;
 }
 
-/* Time-Slot Button */
+/* Time-Slot Button - SLOTS BLEIBEN KLEIN WIE VORHER */
 .time-slot {
     display: flex;
     flex-direction: column;
@@ -329,8 +332,8 @@ body {
     justify-content: center;
     width: 100%;
     min-width: 75px;
-    height: 85px;
-    padding: 0.5rem 0.3rem;
+    height: 85px; /* ORIGINALGRÖSSE */
+    padding: 0.5rem 0.3rem; /* ORIGINAL PADDING */
     border: 1px solid var(--glass-border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.9);
@@ -348,7 +351,7 @@ body {
 }
 
 .time-label {
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* ORIGINALGRÖSSE */
     font-weight: 600;
     color: var(--dunkelblau);
     margin-bottom: 0.2rem;
@@ -356,7 +359,7 @@ body {
 }
 
 .slot-status {
-    font-size: 0.85rem;
+    font-size: 0.85rem; /* ORIGINALGRÖSSE */
     font-weight: 600;
     margin: 0.2rem 0;
     min-height: 1.3rem;
@@ -364,7 +367,7 @@ body {
 }
 
 .slot-status-text {
-    font-size: 0.7rem;
+    font-size: 0.7rem; /* ORIGINALGRÖSSE */
     color: var(--dunkelgrau);
     text-align: center;
     line-height: 1.1;

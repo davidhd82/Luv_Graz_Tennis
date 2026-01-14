@@ -12,4 +12,5 @@ public class EntryDto {
     private String tennisCourtName;
     private String entryTypeName;
     private String userEmail;
+    private String userName;
 }
