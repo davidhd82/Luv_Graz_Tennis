@@ -3,7 +3,6 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useNavigate } from 'react-router-dom';
 import "../css/Booking.css";
-import { colors } from "@mui/material";
 
 const hours = [
     "08:00", "09:00", "10:00", "11:00",
@@ -11,7 +10,8 @@ const hours = [
     "16:00", "17:00", "18:00", "19:00", "20:00"
 ];
 
-// Interface für Entry-Types
+// ENTFERNEN: Feste Limits, jetzt kommt das Limit vom Backend
+
 interface EntryType {
     entryTypeId: number;
     name: string;
@@ -53,14 +53,21 @@ interface User {
     isAdmin: boolean;
     enabled: boolean;
     membershipPaid: boolean;
+    maxDailyBookingHours: number; // NEU: Konfigurierbares Limit
+}
+
+// NEUE Interface für Multiselect
+interface SelectedSlot {
+    courtId: number;
+    time: string;
+    hour: number;
 }
 
 export default function BookingPage() {
     const navigate = useNavigate();
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [selectedCourt, setSelectedCourt] = useState<number | null>(null);
-    const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
     const [selectedEntryType, setSelectedEntryType] = useState<number>(1);
     const [courtBookings, setCourtBookings] = useState<CourtBookings>({});
     const [loading, setLoading] = useState(false);
@@ -69,6 +76,11 @@ export default function BookingPage() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [showEntryTypeSelector, setShowEntryTypeSelector] = useState(false);
     const [editingExistingEntry, setEditingExistingEntry] = useState<EntryDto | null>(null);
+
+    // NEU: Anzahl der bereits gebuchten Stunden für den Tag
+    const [bookedHoursToday, setBookedHoursToday] = useState<number>(0);
+    // NEU: Maximal verfügbare Stunden für den Tag (vom User)
+    const [availableHoursToday, setAvailableHoursToday] = useState<number>(0);
 
     const entryTypes: EntryType[] = [
         {
@@ -127,7 +139,8 @@ export default function BookingPage() {
                     lastName: userData.lastName,
                     isAdmin: userData.isAdmin || userData.admin || false,
                     enabled: userData.enabled || true,
-                    membershipPaid: userData.membershipPaid || false
+                    membershipPaid: userData.membershipPaid || false,
+                    maxDailyBookingHours: userData.maxDailyBookingHours || 2 // Standardwert 2
                 };
 
                 setCurrentUser(user);
@@ -138,8 +151,12 @@ export default function BookingPage() {
                     firstName: user.firstName,
                     lastName: user.lastName,
                     isAdmin: user.isAdmin,
-                    membershipPaid: user.membershipPaid
+                    membershipPaid: user.membershipPaid,
+                    maxDailyBookingHours: user.maxDailyBookingHours
                 }));
+
+                // NEU: Setze das verfügbare Limit basierend auf User-Daten
+                setAvailableHoursToday(user.maxDailyBookingHours);
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
@@ -164,10 +181,13 @@ export default function BookingPage() {
                 lastName: userData.lastName,
                 isAdmin: userData.isAdmin || userData.admin || false,
                 enabled: userData.enabled || true,
-                membershipPaid: userData.membershipPaid || false
+                membershipPaid: userData.membershipPaid || false,
+                maxDailyBookingHours: userData.maxDailyBookingHours || 2
             });
             setIsAuthenticated(true);
-            fetchCurrentUser();
+            // NEU: Setze verfügbare Stunden basierend auf gespeichertem User
+            setAvailableHoursToday(userData.maxDailyBookingHours || 2);
+            fetchCurrentUser(); // Daten vom Server aktualisieren
         } else {
             setError('Bitte melden Sie sich an um Buchungen zu sehen');
         }
@@ -288,6 +308,9 @@ export default function BookingPage() {
             });
 
             setCourtBookings(newCourtBookings);
+
+            // NEU: Berechne die Anzahl der bereits gebuchten Stunden des aktuellen Benutzers für diesen Tag
+            calculateBookedHours(newCourtBookings, dateKey);
         } catch (err: any) {
             console.error('Error fetching entries:', err);
             if (err.message === 'UNAUTHORIZED') {
@@ -300,8 +323,40 @@ export default function BookingPage() {
                 setError(err.message);
             }
             setCourtBookings({});
+            setBookedHoursToday(0);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // NEU: Funktion zum Berechnen der bereits gebuchten Stunden
+    const calculateBookedHours = (bookings: CourtBookings, dateKey: string) => {
+        if (!currentUser) {
+            setBookedHoursToday(0);
+            return;
+        }
+
+        let totalBookedHours = 0;
+        Object.values(bookings).forEach(entries => {
+            entries.forEach(entry => {
+                if (entry.userEmail === currentUser.email &&
+                    entry.entryTypeName === 'Buchung' &&
+                    entry.entryDate === dateKey) {
+                    totalBookedHours++;
+                }
+            });
+        });
+
+        setBookedHoursToday(totalBookedHours);
+
+        // NEU: Berechne verfügbare Stunden basierend auf User-Limit
+        if (currentUser.isAdmin) {
+            // Admins haben kein Limit
+            setAvailableHoursToday(999);
+        } else {
+            const userLimit = currentUser.maxDailyBookingHours;
+            const available = Math.max(0, userLimit - totalBookedHours);
+            setAvailableHoursToday(available);
         }
     };
 
@@ -316,6 +371,14 @@ export default function BookingPage() {
 
             if (!currentUser?.isAdmin && selectedEntryType !== 1) {
                 throw new Error('Nur Administratoren können Kurse, Turniere oder Sperrungen erstellen.');
+            }
+
+            // NEU: Prüfe Buchungslimit für normale Benutzer
+            if (!currentUser?.isAdmin && selectedEntryType === 1) {
+                const userLimit = currentUser.maxDailyBookingHours;
+                if (bookedHoursToday >= userLimit) {
+                    throw new Error(`Sie haben Ihr tägliches Buchungslimit von ${userLimit} Stunden bereits erreicht.`);
+                }
             }
 
             const request: CreateEntryRequest = {
@@ -416,6 +479,20 @@ export default function BookingPage() {
             }
 
             if (!response.ok) throw new Error('Löschen fehlgeschlagen');
+
+            // NEU: Aktualisiere die Anzahl der gebuchten Stunden nach dem Löschen
+            if (selectedDate) {
+                const dateKey = formatDateKey(selectedDate);
+                // Simuliere das Entfernen der Buchung
+                const newBookedHours = Math.max(0, bookedHoursToday - 1);
+                setBookedHoursToday(newBookedHours);
+
+                if (currentUser && !currentUser.isAdmin) {
+                    const userLimit = currentUser.maxDailyBookingHours;
+                    const newAvailableHours = Math.max(0, userLimit - newBookedHours);
+                    setAvailableHoursToday(newAvailableHours);
+                }
+            }
         } catch (err: any) {
             throw new Error(err.message);
         }
@@ -426,11 +503,35 @@ export default function BookingPage() {
             fetchEntriesForAllCourts(selectedDate);
         } else {
             setCourtBookings({});
+            setBookedHoursToday(0);
+            // NEU: Setze verfügbare Stunden basierend auf User-Limit
+            if (currentUser) {
+                if (currentUser.isAdmin) {
+                    setAvailableHoursToday(999);
+                } else {
+                    setAvailableHoursToday(currentUser.maxDailyBookingHours);
+                }
+            } else {
+                setAvailableHoursToday(2); // Standardwert
+            }
         }
     }, [selectedDate, isAuthenticated]);
 
-    const handleBooking = async () => {
-        if (!selectedDate || !selectedCourt || !selectedTime) return;
+    // NEU: Funktion zum Aktualisieren der verfügbaren Stunden nach Buchung
+    const updateAvailableHoursAfterBooking = (numberOfBookings: number) => {
+        if (currentUser?.isAdmin) return;
+
+        const newBookedHours = bookedHoursToday + numberOfBookings;
+        setBookedHoursToday(newBookedHours);
+
+        const userLimit = currentUser?.maxDailyBookingHours || 2;
+        const newAvailableHours = Math.max(0, userLimit - newBookedHours);
+        setAvailableHoursToday(newAvailableHours);
+    };
+
+    // NEUE Funktion: Mehrere Buchungen auf einmal
+    const handleMultipleBookings = async () => {
+        if (!selectedDate || selectedSlots.length === 0) return;
         if (!isAuthenticated) {
             navigate('/login');
             return;
@@ -438,11 +539,53 @@ export default function BookingPage() {
 
         try {
             setLoading(true);
-            const startHour = parseInt(selectedTime.split(':')[0]);
             const entryDate = formatDateKey(selectedDate);
 
-            await createOrUpdateEntry(selectedCourt, entryDate, startHour);
+            // NEU: Prüfe ob genügend verfügbare Stunden vorhanden sind
+            if (!currentUser?.isAdmin && selectedSlots.length > availableHoursToday) {
+                throw new Error(`Sie können nur noch ${availableHoursToday} Stunde(n) buchen.`);
+            }
+
+            // Alle ausgewählten Slots buchen
+            const bookingPromises = selectedSlots.map(async (slot) => {
+                await createOrUpdateEntry(slot.courtId, entryDate, slot.hour);
+            });
+
+            await Promise.all(bookingPromises);
             await fetchEntriesForAllCourts(selectedDate);
+
+            // NEU: Aktualisiere verfügbare Stunden
+            updateAvailableHoursAfterBooking(selectedSlots.length);
+
+            const entryTypeName = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.name || 'Buchung';
+            alert(`${selectedSlots.length} ${entryTypeName}(en) erfolgreich erstellt!`);
+
+            resetSelection();
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // NEUE Funktion: Einzelne Buchung (für bestehende Logik)
+    const handleSingleBooking = async () => {
+        if (!selectedDate || selectedSlots.length !== 1) return;
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const slot = selectedSlots[0];
+            const entryDate = formatDateKey(selectedDate);
+
+            await createOrUpdateEntry(slot.courtId, entryDate, slot.hour);
+            await fetchEntriesForAllCourts(selectedDate);
+
+            // NEU: Aktualisiere verfügbare Stunden
+            updateAvailableHoursAfterBooking(1);
 
             const entryTypeName = entryTypes.find(t => t.entryTypeId === selectedEntryType)?.name || 'Buchung';
             const action = editingExistingEntry ? 'aktualisiert' : 'erstellt';
@@ -456,9 +599,17 @@ export default function BookingPage() {
         }
     };
 
+    // Kombinierte Buchungsfunktion
+    const handleBooking = async () => {
+        if (selectedSlots.length > 1) {
+            await handleMultipleBookings();
+        } else {
+            await handleSingleBooking();
+        }
+    };
+
     const resetSelection = () => {
-        setSelectedCourt(null);
-        setSelectedTime(null);
+        setSelectedSlots([]);
         setShowEntryTypeSelector(false);
         setEditingExistingEntry(null);
         if (currentUser?.isAdmin) setSelectedEntryType(1);
@@ -475,9 +626,10 @@ export default function BookingPage() {
 
             alert('Eintrag erfolgreich gelöscht!');
 
-            if (selectedCourt === courtId && selectedTime === time) {
-                resetSelection();
-            }
+            // Auswahl zurücksetzen, wenn der gelöschte Slot ausgewählt war
+            setSelectedSlots(prev => prev.filter(slot =>
+                !(slot.courtId === courtId && slot.time === time)
+            ));
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -487,32 +639,58 @@ export default function BookingPage() {
 
     const handleLoginRedirect = () => navigate('/login');
 
+    // NEUE Funktion: Time Slot klicken mit Multiselect und Limit-Prüfung
     const handleTimeClick = (courtId: number, time: string) => {
         if (!isAuthenticated) {
             navigate('/login');
             return;
         }
 
-        if (currentUser?.isAdmin) {
-            setSelectedCourt(courtId);
-            setSelectedTime(time);
-            const existingEntry = getEntryForSlot(courtId, time);
-            setEditingExistingEntry(existingEntry || null);
+        const hour = parseInt(time.split(':')[0]);
+        const clickedSlot = { courtId, time, hour };
 
+        // Prüfen, ob Admin-Modus
+        if (currentUser?.isAdmin) {
+            const existingEntry = getEntryForSlot(courtId, time);
             if (existingEntry) {
+                // Für Admins bei bestehenden Einträgen: Single-Select
+                setSelectedSlots([clickedSlot]);
+                setEditingExistingEntry(existingEntry);
                 const entryType = entryTypes.find(type =>
                     type.name === existingEntry.entryTypeName ||
                     (type.entryTypeId === 4 && existingEntry.entryTypeName === 'Gesperrt')
                 );
                 setSelectedEntryType(entryType?.entryTypeId || 1);
+                setShowEntryTypeSelector(true);
             } else {
-                setSelectedEntryType(1);
-            }
+                // Für Admins bei neuen Einträgen: Multiselect möglich (kein Limit)
+                const isAlreadySelected = selectedSlots.some(slot =>
+                    slot.courtId === courtId && slot.time === time
+                );
 
-            setShowEntryTypeSelector(true);
+                if (isAlreadySelected) {
+                    // Slot abwählen
+                    setSelectedSlots(prev => prev.filter(slot =>
+                        !(slot.courtId === courtId && slot.time === time)
+                    ));
+                } else {
+                    // Prüfen, ob Slot auf demselben Platz ist
+                    if (selectedSlots.length > 0 && selectedSlots[0].courtId !== courtId) {
+                        setError('Sie können nur Slots auf demselben Platz auswählen!');
+                        return;
+                    }
+
+                    // Slot hinzufügen
+                    setSelectedSlots(prev => [...prev, clickedSlot]);
+                    setEditingExistingEntry(null);
+                    setSelectedEntryType(1);
+                }
+                setShowEntryTypeSelector(true);
+            }
             return;
         }
 
+        // Normale Benutzer-Logik mit Limit-Prüfung
         if (isTimeLocked(courtId, time)) {
             setError('Dieser Platz ist für diese Stunde gesperrt.');
             return;
@@ -533,11 +711,52 @@ export default function BookingPage() {
             return;
         }
 
-        setSelectedCourt(courtId);
-        setSelectedTime(time);
+        const isAlreadySelected = selectedSlots.some(slot =>
+            slot.courtId === courtId && slot.time === time
+        );
+
+        if (isAlreadySelected) {
+            // Slot abwählen
+            setSelectedSlots(prev => prev.filter(slot =>
+                !(slot.courtId === courtId && slot.time === time)
+            ));
+        } else {
+            // Prüfen, ob Slot auf demselben Platz ist
+            if (selectedSlots.length > 0 && selectedSlots[0].courtId !== courtId) {
+                setError('Sie können nur Slots auf demselben Platz auswählen!');
+                return;
+            }
+
+            // NEU: Prüfen, ob Buchungslimit erreicht ist (vom Backend)
+            if (selectedSlots.length >= availableHoursToday) {
+                const userLimit = currentUser?.maxDailyBookingHours || 2;
+                setError(`Sie können nur ${userLimit} Stunden pro Tag buchen. Sie haben bereits ${bookedHoursToday} Stunde(n) gebucht.`);
+                return;
+            }
+
+            // Slot hinzufügen
+            setSelectedSlots(prev => [...prev, clickedSlot]);
+        }
+
         setShowEntryTypeSelector(false);
         setSelectedEntryType(1);
         setEditingExistingEntry(null);
+    };
+
+    // Helper-Funktion: Überprüft ob Slot ausgewählt ist
+    const isSlotSelected = (courtId: number, time: string) => {
+        return selectedSlots.some(slot => slot.courtId === courtId && slot.time === time);
+    };
+
+    // NEU: Überprüft ob Slot ausgewählt werden kann (für normale Benutzer)
+    const canSelectSlot = (courtId: number, time: string) => {
+        if (currentUser?.isAdmin) return true;
+
+        const isAlreadySelected = isSlotSelected(courtId, time);
+        if (isAlreadySelected) return true;
+
+        // Prüfe ob noch Stunden verfügbar sind
+        return selectedSlots.length < availableHoursToday;
     };
 
     // Meine Buchungen
@@ -663,21 +882,50 @@ export default function BookingPage() {
                         setSelectedDate(date as Date);
                         resetSelection();
                         setCourtBookings({});
+                        setBookedHoursToday(0);
+                        // NEU: Reset available hours based on user limit
+                        if (currentUser) {
+                            if (currentUser.isAdmin) {
+                                setAvailableHoursToday(999);
+                            } else {
+                                setAvailableHoursToday(currentUser.maxDailyBookingHours);
+                            }
+                        }
                         setError(null);
                     }}
                     value={selectedDate}
                     minDate={new Date()}
                 />
                 {selectedDate && (
-                    <p className="selected-date-info">
-                        Ausgewählt: <strong>{selectedDate.toLocaleDateString("de-DE")}</strong>
-                    </p>
+                    <div className="selected-date-info">
+                        <p>Ausgewählt: <strong>{selectedDate.toLocaleDateString("de-DE")}</strong></p>
+                        {/* NEU: Anzeige der Buchungsstatistik */}
+                        {isAuthenticated && !currentUser?.isAdmin && (
+                            <div className="booking-stats">
+                                <div className="stat-item">
+                                    <span className="stat-label">Persönliches Limit:</span>
+                                    <span className="stat-value">{currentUser?.maxDailyBookingHours} Std/Tag</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-label">Gebucht heute:</span>
+                                    <span className="stat-value">{bookedHoursToday}/{currentUser?.maxDailyBookingHours}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 )}
             </section>
 
             {selectedDate && isAuthenticated && currentUser?.membershipPaid && (
                 <section className="all-courts-section">
                     <h2>2. Verfügbarkeit aller Plätze</h2>
+                    <div className="multiselect-info">
+                        {selectedSlots.length > 0 && (
+                            <p className="selection-counter">
+                                {selectedSlots.length} Stunde(n) ausgewählt auf Platz {selectedSlots[0]?.courtId}
+                            </p>
+                        )}
+                    </div>
                     <div className="all-courts-container">
                         <table className="courts-table">
                             <thead>
@@ -704,7 +952,8 @@ export default function BookingPage() {
                                         const tournament = isTournament(courtId, time);
                                         const myBooking = isMyBooking(courtId, time);
                                         const otherBooking = isOtherUsersBooking(courtId, time);
-                                        const isSelected = selectedCourt === courtId && selectedTime === time;
+                                        const isSelected = isSlotSelected(courtId, time);
+                                        const canSelect = canSelectSlot(courtId, time);
 
                                         let typeClass = "";
                                         let titleText = "";
@@ -733,15 +982,25 @@ export default function BookingPage() {
                                         } else if (isSelected) {
                                             typeClass = "selected";
                                             titleText = "Ausgewählt";
-                                            icon = "✓";
+                                            icon = `${selectedSlots.findIndex(s => s.courtId === courtId && s.time === time) + 1}`;
+                                        }
+
+                                        let disabledReason = "";
+                                        if (!currentUser?.isAdmin && !isSelected && !canSelect) {
+                                            const userLimit = currentUser?.maxDailyBookingHours || 2;
+                                            titleText = `Buchungslimit erreicht (${userLimit} Stunden/Tag)`;
+                                            disabledReason = "limit-reached";
                                         }
 
                                         return (
                                             <td key={time} className="time-slot-cell">
                                                 <button
-                                                    className={`time-slot ${typeClass} ${currentUser?.isAdmin ? 'admin-clickable' : ''}`}
+                                                    className={`time-slot ${typeClass} ${currentUser?.isAdmin ? 'admin-clickable' : ''} ${disabledReason}`}
                                                     onClick={() => handleTimeClick(courtId, time)}
-                                                    disabled={!currentUser?.isAdmin && (locked || course || tournament || otherBooking || myBooking)}
+                                                    disabled={
+                                                        !currentUser?.isAdmin &&
+                                                        (locked || course || tournament || otherBooking || myBooking || !canSelect)
+                                                    }
                                                     title={titleText}
                                                 >
                                                     <span className="time-label">{time}</span>
@@ -757,6 +1016,11 @@ export default function BookingPage() {
                                                                             otherBooking ? "Belegt" : ""}
                                                         </span>
                                                     )}
+                                                    {isSelected && (
+                                                        <div className="slot-selection-indicator">
+                                                            {selectedSlots.findIndex(s => s.courtId === courtId && s.time === time) + 1}
+                                                        </div>
+                                                    )}
                                                 </button>
                                             </td>
                                         );
@@ -769,13 +1033,18 @@ export default function BookingPage() {
                 </section>
             )}
 
-            {showEntryTypeSelector && currentUser?.isAdmin && selectedCourt && selectedTime && (
+            {showEntryTypeSelector && currentUser?.isAdmin && selectedSlots.length > 0 && (
                 <div className="entry-type-selector">
-                    <h3>{editingExistingEntry ? 'Eintrag bearbeiten' : 'Neuen Eintrag erstellen'}</h3>
+                    <h3>
+                        {editingExistingEntry ? 'Eintrag bearbeiten' :
+                            selectedSlots.length > 1 ? 'Mehrere Einträge erstellen' : 'Neuen Eintrag erstellen'}
+                    </h3>
                     <p className="selector-description">
                         {editingExistingEntry ?
-                            `Bearbeite Platz ${selectedCourt} um ${selectedTime} (Aktuell: ${editingExistingEntry.entryTypeName})` :
-                            `Wählen Sie den Typ für Platz ${selectedCourt} um ${selectedTime}:`
+                            `Bearbeite Platz ${selectedSlots[0].courtId} um ${selectedSlots[0].time}` :
+                            selectedSlots.length > 1 ?
+                                `${selectedSlots.length} Stunden auf Platz ${selectedSlots[0].courtId} ausgewählt` :
+                                `Wählen Sie den Typ für Platz ${selectedSlots[0].courtId} um ${selectedSlots[0].time}:`
                         }
                     </p>
 
@@ -814,13 +1083,15 @@ export default function BookingPage() {
                             {loading ? 'Wird verarbeitet...' :
                                 editingExistingEntry ?
                                     `${getCurrentEntryType().name} aktualisieren` :
-                                    `${getCurrentEntryType().name} erstellen`}
+                                    selectedSlots.length > 1 ?
+                                        `${selectedSlots.length} ${getCurrentEntryType().name}(en) erstellen` :
+                                        `${getCurrentEntryType().name} erstellen`}
                         </button>
 
                         {editingExistingEntry && (
                             <button
                                 className="delete-admin-btn"
-                                onClick={() => handleDeleteBooking(selectedCourt!, selectedDate!, selectedTime!)}
+                                onClick={() => handleDeleteBooking(selectedSlots[0].courtId, selectedDate!, selectedSlots[0].time)}
                                 disabled={loading}
                             >
                                 Löschen
@@ -837,7 +1108,7 @@ export default function BookingPage() {
                 </div>
             )}
 
-            {selectedDate && selectedCourt && selectedTime && isAuthenticated && currentUser?.membershipPaid && !currentUser?.isAdmin && (
+            {selectedDate && selectedSlots.length > 0 && isAuthenticated && currentUser?.membershipPaid && !currentUser?.isAdmin && (
                 <div className="slots">
                     <h2>Buchungsbestätigung</h2>
                     <div className="booking-summary">
@@ -849,11 +1120,24 @@ export default function BookingPage() {
                             </div>
                             <div className="summary-item">
                                 <span className="summary-label">Platz:</span>
-                                <span className="summary-value">{selectedCourt}</span>
+                                <span className="summary-value">{selectedSlots[0].courtId}</span>
                             </div>
                             <div className="summary-item">
-                                <span className="summary-label">Uhrzeit:</span>
-                                <span className="summary-value">{selectedTime}</span>
+                                <span className="summary-label">Stunden:</span>
+                                <span className="summary-value">
+                                    {selectedSlots.map(slot => slot.time).join(', ')}
+                                </span>
+                            </div>
+                            <div className="summary-item">
+                                <span className="summary-label">Anzahl Stunden:</span>
+                                <span className="summary-value">{selectedSlots.length}</span>
+                            </div>
+                            {/* NEU: Verbleibende Stunden-Anzeige */}
+                            <div className="summary-item">
+                                <span className="summary-label">Verbleibende Stunden heute:</span>
+                                <span className="summary-value">
+                                    {Math.max(0, availableHoursToday - selectedSlots.length)}/{currentUser?.maxDailyBookingHours}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -863,7 +1147,7 @@ export default function BookingPage() {
                         onClick={handleBooking}
                         disabled={loading}
                     >
-                        {loading ? 'Wird erstellt...' : 'Jetzt buchen'}
+                        {loading ? 'Wird erstellt...' : `${selectedSlots.length} Stunde(n) buchen`}
                     </button>
 
                     <button
@@ -875,7 +1159,7 @@ export default function BookingPage() {
                 </div>
             )}
 
-            {/* MEINE BUCHUNGEN - Original bleibt */}
+            {/* MEINE BUCHUNGEN */}
             {selectedDate && isAuthenticated && getMyBookings().length > 0 && (
                 <section className="my-bookings-section">
                     <h2>Meine Buchungen an {selectedDate.toLocaleDateString("de-DE")}</h2>
