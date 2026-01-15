@@ -10,6 +10,7 @@ import at.htlkaindorf.backend.mapper.UserMapper;
 import at.htlkaindorf.backend.repositories.EntryRepository;
 import at.htlkaindorf.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -26,7 +27,9 @@ public class AdminService {
     private final UserMapper userMapper;
     private final EntryRepository entryRepository;
     private final EntryMapper entryMapper;
+    private final EmailService emailService;
 
+    @Scheduled(cron = "0 1 0 * * *")
     public void updateExpiredMemberships() {
         LocalDate today = LocalDate.now();
 
@@ -37,13 +40,12 @@ public class AdminService {
                     user.getMembershipEndDate().isBefore(today)) {
 
                 user.setMembershipPaid(false);
+                emailService.sendSubscriptionExpired(user);
             }
         }
     }
 
     public List<UserDto> getAllUsers() {
-        updateExpiredMemberships();
-
         return userRepository.findAll()
                 .stream()
                 .map(userMapper::toUserDTO)

@@ -41,4 +41,16 @@ public class EmailService {
         mail.setText(message);
         mailSender.send(mail);
     }
+
+    public void sendSubscriptionExpired(User user) {
+        String subject = "Mitgliedsbeitrag abgelaufen";
+        String message = "Hallo " + user.getFirstName() + ",\n\n" +
+                "Ihr Mitgliedsbeitrag ist abgelaufen!";
+
+        SimpleMailMessage mail = new SimpleMailMessage();
+        mail.setTo(user.getEmail());
+        mail.setSubject(subject);
+        mail.setText(message);
+        mailSender.send(mail);
+    }
 }
