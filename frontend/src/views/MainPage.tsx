@@ -36,16 +36,76 @@ function MainPage() {
         }
     }, []);
 
-    const handleAuthSuccess = (token: string, userData: any) => {
-        setIsLoggedIn(true);
-        setUser(userData);
-    };
-
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setIsLoggedIn(false);
         setUser(null);
+    };
+
+    const handleBookingClick = async () => {
+        if (!isLoggedIn) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+
+            const response = await fetch('http://localhost:8080/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+
+                const isAdmin = userData.isAdmin || userData.admin || false;
+                const membershipPaid = userData.membershipPaid || false;
+
+                if (!isAdmin && !membershipPaid) {
+                    alert('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Bitte kontaktieren Sie den Administrator.');
+                    return;
+                }
+
+                localStorage.setItem('user', JSON.stringify({
+                    userId: userData.userId || userData.id,
+                    email: userData.email,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    isAdmin: isAdmin,
+                    membershipPaid: membershipPaid,
+                    maxDailyBookingHours: userData.maxDailyBookingHours || 2
+                }));
+
+                setUser({
+                    userId: userData.userId || userData.id,
+                    email: userData.email,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    isAdmin: isAdmin,
+                    membershipPaid: membershipPaid,
+                    maxDailyBookingHours: userData.maxDailyBookingHours || 2
+                });
+
+                navigate('/booking');
+            } else {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                setIsLoggedIn(false);
+                setUser(null);
+                navigate('/login');
+            }
+        } catch (error) {
+            console.error('Fehler beim Prüfen des Benutzerstatus:', error);
+            alert('Fehler beim Laden Ihrer Daten. Bitte versuchen Sie es erneut.');
+        }
     };
 
     return (
@@ -143,9 +203,12 @@ function MainPage() {
                 </div>
 
                 <div className="booking-container-bottom">
-                    <button className="booking-btn-large"
-                            onClick={() => {navigate('/booking')}}
-                    >Online Buchen</button>
+                    <button
+                        className="booking-btn-large"
+                        onClick={handleBookingClick} // GEÄNDERT: handleBookingClick statt direkt navigate
+                    >
+                        Online Buchen
+                    </button>
                 </div>
             </section>
 

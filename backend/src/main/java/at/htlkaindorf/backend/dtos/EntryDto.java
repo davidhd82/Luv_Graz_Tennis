@@ -1,7 +1,6 @@
 package at.htlkaindorf.backend.dtos;
 
 import lombok.Data;
-
 import java.time.LocalDate;
 
 @Data
@@ -13,4 +12,7 @@ public class EntryDto {
     private String entryTypeName;
     private String userEmail;
     private String userName;
+    private String userFirstName;
+    private String userLastName;
+    private String userInitials;
 }
