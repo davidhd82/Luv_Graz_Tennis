@@ -1,10 +1,13 @@
 package at.htlkaindorf.backend.services;
 
+import at.htlkaindorf.backend.entities.Entry;
 import at.htlkaindorf.backend.entities.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,19 @@ public class EmailService {
                 "Bitte bestätige deine E-Mail-Adresse durch Klick auf diesen Link:\n" +
                 verificationLink + "\n\n" +
                 "Dieser Link ist 24 Stunden gültig.";
+
+        SimpleMailMessage mail = new SimpleMailMessage();
+        mail.setTo(user.getEmail());
+        mail.setSubject(subject);
+        mail.setText(message);
+        mailSender.send(mail);
+    }
+
+    public void sendReservationAcknowledgment(User user, Integer startHour, Integer endHour, LocalDate date) {
+        String subject = "Buchung erfolgreich";
+        String message = "Hallo " + user.getFirstName() + ",\n\n" +
+                "Ihre Buchung für den " + date.toString() + " von " + startHour + " bis " + endHour + "\n" +
+                "wurde erfolgreich gebucht!";
 
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(user.getEmail());

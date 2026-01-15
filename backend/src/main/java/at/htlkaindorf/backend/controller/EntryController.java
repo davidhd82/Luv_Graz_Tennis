@@ -29,15 +29,15 @@ public class EntryController {
 
     @PostMapping
     public ResponseEntity<?> createEntry(@RequestBody CreateEntryRequest request) {
-        EntryDto dto = entryService.createEntry(request);
+        List<EntryDto> dtos = entryService.createEntry(request);
 
-        if (dto == null) {
+        if (dtos == null || dtos.isEmpty()) {
             return ResponseEntity
                     .status(409)
                     .body("Daily booking limit reached");
         }
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(dtos);
     }
 
 

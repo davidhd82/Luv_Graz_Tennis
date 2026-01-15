@@ -8,6 +8,7 @@ import java.time.LocalDate;
 public class CreateEntryRequest {
     private LocalDate entryDate;
     private Integer startHour;
+    private Integer endHour;
     private Long tennisCourtId;
     private Long entryTypeId;
 }
