@@ -1,4 +1,16 @@
-/* UserProfile.css - Aktualisiert */
+/* UserProfile.css - Grau/Blau Farbpalette */
+
+:root {
+    --dunkelgrau: #353535;
+    --mittelgrau: #3C6E71;
+    --weiß: #FFFFFF;
+    --hellgrau: #D9D9D9;
+    --dunkelblau: #284B63;
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(59, 110, 113, 0.15);
+    --glass-shadow: rgba(40, 75, 99, 0.1);
+}
+
 .user-profile {
     position: relative;
 }
@@ -9,38 +21,44 @@
     gap: 0.75rem;
     cursor: pointer;
     padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    transition: all 0.3s;
-    background: linear-gradient(45deg, #6366f1, #4f46e5);
-    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg,
+    rgba(59, 110, 113, 0.9) 0%,
+    rgba(40, 75, 99, 0.85) 100%);
+    border: 1.5px solid transparent;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .user-menu:hover {
-    background: white;
-    border-color: #1e40af;
+    background: var(--weiß);
+    border-color: var(--dunkelblau);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+    box-shadow:
+            0 8px 25px rgba(40, 75, 99, 0.2),
+            0 4px 6px rgba(59, 110, 113, 0.15);
 }
 
 .user-greeting {
-    color: white;
+    color: var(--weiß);
     font-weight: 600;
     font-size: 1rem;
     transition: color 0.3s;
 }
 
 .user-menu:hover .user-greeting {
-    color: #1e40af;
+    color: var(--dunkelblau);
 }
 
 .dropdown-arrow {
-    color: white;
+    color: var(--weiß);
     font-size: 0.8rem;
     transition: all 0.3s;
 }
 
 .user-menu:hover .dropdown-arrow {
-    color: #1e40af;
+    color: var(--dunkelblau);
     transform: rotate(180deg);
 }
 
@@ -48,47 +66,51 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: var(--glass-bg);
+    border-radius: 12px;
+    box-shadow:
+            0 15px 40px var(--glass-shadow),
+            0 5px 15px rgba(59, 110, 113, 0.1);
     min-width: 250px;
     z-index: 1000;
-    margin-top: 0.5rem;
-    border: 1px solid #e5e7eb;
+    margin-top: 0.75rem;
+    border: 1px solid var(--glass-border);
     overflow: hidden;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .user-info {
     padding: 1.25rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--hellgrau);
     font-size: 0.95rem;
-    background: #f8fafc;
-    color: #1f2937;
+    background: rgba(40, 75, 99, 0.03);
+    color: var(--dunkelgrau);
 }
 
 .user-info strong {
-    color: #1e40af;
+    color: var(--dunkelblau);
     font-size: 1.1rem;
     display: block;
     margin-bottom: 5px;
 }
 
 .admin-badge {
-    background: linear-gradient(45deg, #ef4444, #dc2626);
-    color: white;
+    background: linear-gradient(45deg, #3C6E71, #284B63);
+    color: var(--weiß);
     font-size: 0.7rem;
     padding: 3px 8px;
     border-radius: 4px;
     margin-top: 8px;
     display: inline-block;
     font-weight: bold;
-    border: 1px solid #dc2626;
-    box-shadow: 0 1px 4px rgba(220, 38, 38, 0.3);
+    border: 1px solid var(--dunkelblau);
+    box-shadow: 0 1px 4px rgba(59, 110, 113, 0.3);
 }
 
 .dropdown-divider {
     height: 1px;
-    background: #e5e7eb;
+    background: var(--hellgrau);
     margin: 0;
 }
 
@@ -99,9 +121,9 @@
     border: none;
     text-align: left;
     cursor: pointer;
-    color: #4b5563;
+    color: var(--dunkelgrau);
     font-weight: 500;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1rem;
     display: flex;
     align-items: center;
@@ -109,30 +131,34 @@
 }
 
 .dropdown-item:hover {
-    background-color: #f3f4f6;
-    color: #1e40af;
+    background-color: rgba(40, 75, 99, 0.08);
+    color: var(--dunkelblau);
 }
 
 .admin-item {
-    background: linear-gradient(90deg, #f0f9ff, #e0f2fe) !important;
-    color: #1e40af !important;
+    background: linear-gradient(90deg,
+    rgba(59, 110, 113, 0.08) 0%,
+    rgba(40, 75, 99, 0.05) 100%) !important;
+    color: var(--dunkelblau) !important;
     font-weight: 600 !important;
-    border-left: 3px solid #1e40af !important;
+    border-left: 3px solid var(--dunkelblau) !important;
 }
 
 .admin-item:hover {
-    background: linear-gradient(90deg, #e0f2fe, #bae6fd) !important;
-    color: #1e3a8a !important;
+    background: linear-gradient(90deg,
+    rgba(59, 110, 113, 0.12) 0%,
+    rgba(40, 75, 99, 0.08) 100%) !important;
+    color: var(--dunkelblau) !important;
 }
 
 .logout-btn {
-    color: #dc2626 !important;
+    color: #DC2626 !important;
     font-weight: 600;
 }
 
 .logout-btn:hover {
-    background-color: #fef2f2 !important;
-    color: #b91c1c !important;
+    background-color: rgba(220, 38, 38, 0.08) !important;
+    color: #B91C1C !important;
 }
 
 /* Responsive Design */
@@ -148,5 +174,32 @@
         right: 10px;
         left: 10px;
         min-width: auto;
+        border-radius: 8px;
+    }
+
+    .user-greeting {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-menu {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .dropdown-menu {
+        top: 65px;
+        right: 5px;
+        left: 5px;
+    }
+
+    .dropdown-item {
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .user-info {
+        padding: 1rem;
+        font-size: 0.9rem;
     }
 }

@@ -195,13 +195,13 @@ export default function Profile() {
                         <p>{user?.email}</p>
                         {user?.isAdmin && (
                             <div className="admin-tag">
-                                <span className="admin-badge">👑 ADMIN</span>
+                                <span className="admin-badge">ADMIN</span>
                             </div>
                         )}
                         {user?.membershipPaid !== undefined && (
                             <div className="membership-tag">
                                 <span className={`membership-badge ${user.membershipPaid ? 'paid' : 'not-paid'}`}>
-                                    {user.membershipPaid ? '✅ Mitgliedsbeitrag bezahlt' : '⚠️ Mitgliedsbeitrag offen'}
+                                    {user.membershipPaid ? 'Mitgliedsbeitrag bezahlt' : 'Mitgliedsbeitrag offen'}
                                 </span>
                             </div>
                         )}
@@ -277,13 +277,6 @@ export default function Profile() {
                                 <span className={`membership-status-badge ${user?.membershipPaid ? 'paid' : 'not-paid'}`}>
                                     {user?.membershipPaid ? 'Bezahlt' : 'Offen'}
                                 </span>
-                                <button
-                                    onClick={handleMembershipInfo}
-                                    className="info-btn"
-                                    title="Informationen zum Mitgliedsstatus"
-                                >
-                                    ℹ️
-                                </button>
                             </div>
                         </div>
                         {user?.isAdmin && (
@@ -298,7 +291,7 @@ export default function Profile() {
                 <div className="profile-actions">
                     {user?.isAdmin && (
                         <button className="admin-btn" onClick={handleAdminDashboard}>
-                            👑 Admin Dashboard
+                            Admin Dashboard
                         </button>
                     )}
                     <button className="edit-btn" onClick={handleEdit}>

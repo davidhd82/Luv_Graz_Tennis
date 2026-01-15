@@ -7,8 +7,8 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface EntryMapper {
-
     @Mapping(source = "user.email", target = "userEmail")
+    @Mapping(target = "userName", expression = "java(entry.getUser() != null ? entry.getUser().getFirstName() + \" \" + entry.getUser().getLastName() : \"\")")
     @Mapping(source = "tennisCourt.tennisCourtId", target = "tennisCourtId")
     @Mapping(source = "tennisCourt.name", target = "tennisCourtName")
     @Mapping(source = "entryType.name", target = "entryTypeName")
