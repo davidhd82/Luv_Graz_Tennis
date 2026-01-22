@@ -1043,3 +1043,274 @@ body {
         font-size: 0.6rem;
     }
 }
+
+/* Status-Klassen für Stunden-Slots - GEÄNDERT für einheitliche Buchungsfarbe */
+.time-slot.locked-type {
+    background: linear-gradient(135deg,
+    rgba(40, 75, 99, 0.1) 0%,
+    rgba(59, 110, 113, 0.15) 100%) !important;
+    color: var(--dunkelblau) !important;
+    border: 2px solid rgba(40, 75, 99, 0.3) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.time-slot.course-type {
+    background: linear-gradient(135deg,
+    rgba(53, 53, 53, 0.9) 0%,
+    rgba(89, 89, 89, 0.85) 100%) !important;
+    color: var(--weiß) !important;
+    border: 2px solid rgba(53, 53, 53, 0.3) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.time-slot.tournament-type {
+    background: linear-gradient(135deg,
+    rgba(40, 75, 99, 0.7) 0%,
+    rgba(59, 110, 113, 0.6) 100%) !important;
+    color: var(--weiß) !important;
+    border: 2px solid rgba(40, 75, 99, 0.3) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* NEU: Einheitliche Farbe für alle Buchungen (meine und andere) */
+.time-slot.my-booking,
+.time-slot.other-booking {
+    background: linear-gradient(135deg,
+    rgba(59, 110, 113, 0.9) 0%,
+    rgba(40, 75, 99, 0.85) 100%) !important;
+    color: var(--weiß) !important;
+    border: 2px solid var(--mittelgrau) !important;
+}
+
+/* Nur meine Buchungen bleiben anklickbar */
+.time-slot.my-booking {
+    cursor: pointer;
+}
+
+/* Andere Buchungen bleiben nicht anklickbar für normale Benutzer */
+.time-slot.other-booking:not(.admin-clickable) {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Für Admins sind andere Buchungen anklickbar */
+.time-slot.other-booking.admin-clickable {
+    cursor: pointer;
+}
+
+.time-slot.selected {
+    background: linear-gradient(135deg,
+    rgba(40, 75, 99, 0.9) 0%,
+    rgba(59, 110, 113, 0.85) 100%) !important;
+    color: var(--weiß) !important;
+    border: 2px solid var(--mittelgrau) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+/* Hover-Effekt nur für anwählbare Slots */
+.time-slot:hover:not(:disabled):not(.locked-type):not(.course-type):not(.tournament-type):not(.other-booking:not(.admin-clickable)):not(.my-booking) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 75, 99, 0.15);
+    border-color: var(--mittelgrau);
+}
+
+/* NEU: User Initials Badge für Admin-Anzeige */
+.user-initials-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--dunkelblau);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 3px;
+    border: 1px solid var(--mittelgrau);
+    min-width: 22px;
+    text-align: center;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* NEU: Bessere Unterscheidung zwischen eigenen und anderen Buchungen durch Tooltip und Badge */
+.time-slot.my-booking .slot-status-text::after {
+    content: " (Meine)";
+    font-size: 0.6rem;
+    opacity: 0.9;
+}
+
+.time-slot.other-booking .slot-status-text::after {
+    content: " (Gebucht)";
+    font-size: 0.6rem;
+    opacity: 0.9;
+}
+
+/* Für Admins: Zeige Initialen im Badge */
+.time-slot.other-booking .user-initials-badge {
+    display: block;
+}
+
+/* Für normale Benutzer: Verstecke das Badge */
+.time-slot.other-booking:not(.admin-clickable) .user-initials-badge {
+    display: none;
+}
+
+/* Tooltip für Buchungen */
+.time-slot[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 75, 99, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: pre-line;
+    max-width: 250px;
+    z-index: 1000;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    text-align: left;
+    line-height: 1.4;
+}
+
+/* Verstecke Tooltip für nicht-interaktive Slots */
+.time-slot:disabled[title]:hover::after,
+.time-slot.locked-type[title]:hover::after,
+.time-slot.course-type[title]:hover::after,
+.time-slot.tournament-type[title]:hover::after,
+.time-slot.other-booking:not(.admin-clickable)[title]:hover::after {
+    display: none;
+}
+
+/* NEU: Hervorhebung für ausgewählte Slots */
+.time-slot.selected .user-initials-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-color: white;
+}
+
+/* Verbesserte Responsive Anzeige */
+@media (max-width: 768px) {
+    .user-initials-badge {
+        font-size: 0.65rem;
+        padding: 1px 3px;
+        min-width: 20px;
+    }
+
+    .time-slot.my-booking .slot-status-text::after,
+    .time-slot.other-booking .slot-status-text::after {
+        content: "";
+        font-size: 0;
+    }
+
+    .time-slot[title]:hover::after {
+        font-size: 0.75rem;
+        max-width: 200px;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-initials-badge {
+        font-size: 0.55rem;
+        padding: 0 2px;
+        min-width: 18px;
+    }
+
+    .time-slot[title]:hover::after {
+        font-size: 0.7rem;
+        max-width: 180px;
+        padding: 4px 8px;
+    }
+}
+
+/* Buchungsstatistik */
+.booking-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 12px;
+    border-radius: 6px;
+    min-width: 120px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--dunkelblau);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--mittelgrau);
+}
+
+.available-highlight {
+    color: #10b981 !important;
+    font-weight: 700;
+}
+
+/* Multiselect Info */
+.multiselect-info {
+    background: rgba(59, 110, 113, 0.1);
+    border: 1px solid rgba(59, 110, 113, 0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.multiselect-info p {
+    margin: 0;
+    color: var(--dunkelblau);
+    font-size: 0.95rem;
+}
+
+.selection-counter {
+    margin-top: 8px !important;
+    font-weight: 600;
+    color: var(--mittelgrau) !important;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+/* Selection Info */
+.selection-info {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(59, 110, 113, 0.1);
+    border-radius: 8px;
+}
+
+.selection-range {
+    margin: 5px 0 0 0 !important;
+    color: var(--dunkelblau);
+    font-size: 1rem;
+}
+
+.selection-range strong {
+    color: var(--mittelgrau);
+    font-weight: 600;
+}
