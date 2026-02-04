@@ -1,0 +1,55 @@
+name: Deploy to Uberspace
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Backend (Maven)
+        working-directory: backend
+        run: |
+          ./mvnw clean package -DskipTests
+
+      - name: Deploy Frontend
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avrh --delete
+          path: frontend/build/
+          remote_path: /var/www/virtual/${{ vars.SSH_USERNAME }}/html/
+          remote_host: ${{ vars.SSH_HOST }}
+          remote_user: ${{ vars.SSH_USERNAME }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy Backend target
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avrh --delete
+          path: backend/target/
+          remote_path: /home/${{ vars.SSH_USERNAME }}/app/backend/
+          remote_host: ${{ vars.SSH_HOST }}
+          remote_user: ${{ vars.SSH_USERNAME }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Activate Jar + Restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ vars.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            JAR=$(ls -1 /home/${{ vars.SSH_USERNAME }}/app/backend/*.jar | head -n 1)
+            cp -f "$JAR" /home/${{ vars.SSH_USERNAME }}/app/backend/app.jar
+            supervisorctl restart myapp
+            supervisorctl status
