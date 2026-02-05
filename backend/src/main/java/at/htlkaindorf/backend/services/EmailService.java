@@ -7,6 +7,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 
@@ -16,13 +18,14 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    private static final String BASE_URL = "http://localhost:8080";
+    @Value("${app.base-url}")
+    private String baseUrl;
     private static final String BRAND_NAME = "Service";
     private static final String SUPPORT_FOOTER_TEXT = "Wenn Sie diese E-Mail nicht erwartet haben, können Sie sie ignorieren.";
 
     public void sendVerificationEmail(User user) {
         String subject = "Bitte bestätigen Sie Ihre E-Mail-Adresse";
-        String verificationLink = BASE_URL + "/api/auth/verify?token=" + user.getVerificationToken();
+        String verificationLink = baseUrl + "/api/auth/verify?token=" + user.getVerificationToken();
 
         String plainText =
                 "Hallo " + safe(user.getFirstName()) + ",\n\n" +
