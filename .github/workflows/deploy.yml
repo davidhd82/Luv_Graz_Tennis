@@ -23,6 +23,11 @@ jobs:
         run: |
           npm ci
           npm run build
+          echo "== frontend dir =="
+          ls -la
+          echo "== build/dist (if present) =="
+          ls -la build || true
+          ls -la dist || true
 
       # ---------- BACKEND ----------
       - name: Set up Java
@@ -46,33 +51,41 @@ jobs:
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
-          # Decode key safely. This will FAIL if the secret isn't valid base64.
+          # Decode key safely (single-line base64 secret)
           printf "%s" "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 --decode > "$HOME/.ssh/id_deploy"
           chmod 600 "$HOME/.ssh/id_deploy"
 
-          # Validate key: fails here if file is not a real private key
+          # Validate key (fails here if decoded file is not a valid private key)
           ssh-keygen -y -f "$HOME/.ssh/id_deploy" >/dev/null
-
-          # Print fingerprint (safe, no key leak) so we know which key is used
           ssh-keygen -lf "$HOME/.ssh/id_deploy"
 
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
 
-          # smoke test: must print "ok"
+          # Smoke test (must print "ok")
           ssh -i "$HOME/.ssh/id_deploy" \
             -o IdentitiesOnly=yes \
             -o BatchMode=yes \
             -o PreferredAuthentications=publickey \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" "echo ok"
 
-      # ---------- DEPLOY FRONTEND ----------
+      # ---------- DEPLOY FRONTEND (auto-detect build/dist) ----------
       - name: Deploy Frontend (rsync)
         shell: bash
         run: |
+          if [ -d "frontend/build" ]; then
+            OUTDIR="frontend/build"
+          elif [ -d "frontend/dist" ]; then
+            OUTDIR="frontend/dist"
+          else
+            echo "❌ No frontend build output found. Contents of frontend/:"
+            ls -la frontend
+            exit 1
+          fi
+
           rsync -avrh --delete \
             -e "ssh -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PreferredAuthentications=publickey" \
-            frontend/build/ \
+            "${OUTDIR}/" \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/virtual/${{ secrets.SSH_USERNAME }}/html/"
 
       # ---------- DEPLOY BACKEND ----------
