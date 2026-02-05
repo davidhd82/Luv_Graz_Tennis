@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
+import { API_BASE_URL } from '../api';
 
 interface User {
     userId: number; // Geändert von id zu userId
@@ -36,8 +37,7 @@ export default function Profile() {
                 return;
             }
 
-            // const response = await fetch('https://kainhaus.uber.space/api/user/me', {
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch(`${API_BASE_URL}/api/user/me`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -113,8 +113,7 @@ export default function Profile() {
 
         try {
             const token = localStorage.getItem('token');
-            // const response = await fetch('https://kainhaus.uber.space/api/user/delete', {
-            const response = await fetch('http://localhost:8080/api/user/delete', {
+            const response = await fetch(`${API_BASE_URL}/api/user/delete`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

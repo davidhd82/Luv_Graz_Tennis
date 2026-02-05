@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../css/Auth.css';
+import { API_BASE_URL } from '../api';
 
 interface VerificationState {
     email: string;
@@ -57,8 +58,7 @@ export default function EmailVerificationPending() {
 
         setResending(true);
         try {
-            //const response = await fetch('https://kainhaus.uber.space/api/auth/resend-verification', {
-            const response = await fetch('http://localhost:8080/api/auth/resend-verification', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,9 +86,7 @@ export default function EmailVerificationPending() {
     const handleCheckVerification = async () => {
         setChecking(true);
         try {
-            /*            const response = await fetch(`https://kainhaus.uber.space/api/auth/check-verification?email=${encodeURIComponent(email)}`);*/
-
-            const response = await fetch(`http://localhost:8080/api/auth/check-verification?email=${encodeURIComponent(email)}`);
+            const response = await fetch(`${API_BASE_URL}/api/auth/check-verification?email=${encodeURIComponent(email)}`);
 
             if (response.ok) {
                 const userData: CheckVerificationResponse = await response.json();
