@@ -113,6 +113,20 @@ jobs:
             fi
 
             cp -f "$JAR" app.jar
+
+            # Supervisor-Config mit Umgebungsvariable für Base-URL
+            mkdir -p ~/etc/services.d
+            cat > ~/etc/services.d/myapp.ini << 'SVCCONF'
+[program:myapp]
+command=java -jar %(ENV_HOME)s/app/backend/app.jar --spring.profiles.active=uberspace
+directory=%(ENV_HOME)s/app/backend
+environment=APP_BASE_URL="https://kainhaus.uber.space"
+autostart=yes
+autorestart=yes
+SVCCONF
+
+            supervisorctl reread
+            supervisorctl update
             supervisorctl restart myapp
             supervisorctl status
           EOF
