@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------- CHECKOUT ----------
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -38,7 +37,7 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package -Dmaven.test.skip=true
 
-      # ---------- PREPARE SSH (ROBUST) ----------
+      # ---------- PREPARE SSH (B64 SAFE) ----------
       - name: Prepare SSH
         shell: bash
         run: |
@@ -47,28 +46,29 @@ jobs:
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
-          # write key
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > "$HOME/.ssh/id_ed25519"
-          # strip CRLF (Windows)
-          sed -i 's/\r$//' "$HOME/.ssh/id_ed25519"
-          chmod 600 "$HOME/.ssh/id_ed25519"
+          # decode key safely (no newline/format issues)
+          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
 
-          # validate key (fails here if secret is malformed)
-          ssh-keygen -y -f "$HOME/.ssh/id_ed25519" >/dev/null
+          # validate key (fails here if anything is wrong)
+          ssh-keygen -y -f "$HOME/.ssh/id_deploy" >/dev/null
 
-          # trust host
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
 
-          # quick ssh smoke test (no command output, just auth)
-          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o BatchMode=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" "echo ok"
+          # smoke test
+          ssh -i "$HOME/.ssh/id_deploy" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o PreferredAuthentications=publickey \
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" "echo ok"
 
       # ---------- DEPLOY FRONTEND ----------
       - name: Deploy Frontend (rsync)
         shell: bash
         run: |
           rsync -avrh --delete \
-            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes" \
+            -e "ssh -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PreferredAuthentications=publickey" \
             frontend/build/ \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/virtual/${{ secrets.SSH_USERNAME }}/html/"
 
@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           rsync -avrh \
-            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes" \
+            -e "ssh -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PreferredAuthentications=publickey" \
             backend/target/*.jar \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/app/backend/"
 
@@ -85,7 +85,7 @@ jobs:
       - name: Activate app.jar + Restart
         shell: bash
         run: |
-          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
+          ssh -i "$HOME/.ssh/id_deploy" -o IdentitiesOnly=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
             set -e
             cd ~/app/backend
 
