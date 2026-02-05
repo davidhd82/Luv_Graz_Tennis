@@ -163,7 +163,7 @@ function MainPage() {
 
             <section className="full-content">
                 <div className="content-header">
-                    <h1>TC LUV Graz Penis</h1>
+                    <h1>TC LUV Graz</h1>
                 </div>
 
                 <div className="text-content">
