@@ -37,7 +37,7 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package -Dmaven.test.skip=true
 
-      # ---------- PREPARE SSH (B64 SAFE) ----------
+      # ---------- PREPARE SSH (B64 SAFE + HARD CHECKS) ----------
       - name: Prepare SSH
         shell: bash
         run: |
@@ -46,17 +46,20 @@ jobs:
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
-          # decode key safely (no newline/format issues)
-          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > "$HOME/.ssh/id_deploy"
+          # Decode key safely. This will FAIL if the secret isn't valid base64.
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 --decode > "$HOME/.ssh/id_deploy"
           chmod 600 "$HOME/.ssh/id_deploy"
 
-          # validate key (fails here if anything is wrong)
+          # Validate key: fails here if file is not a real private key
           ssh-keygen -y -f "$HOME/.ssh/id_deploy" >/dev/null
+
+          # Print fingerprint (safe, no key leak) so we know which key is used
+          ssh-keygen -lf "$HOME/.ssh/id_deploy"
 
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
 
-          # smoke test
+          # smoke test: must print "ok"
           ssh -i "$HOME/.ssh/id_deploy" \
             -o IdentitiesOnly=yes \
             -o BatchMode=yes \
