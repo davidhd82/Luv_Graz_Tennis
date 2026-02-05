@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------- CHECKOUT ----------
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -38,57 +37,44 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package -Dmaven.test.skip=true
 
-      # ---------- PREPARE SSH (ROBUST + DEBUG) ----------
+      # ---------- PREPARE SSH ----------
       - name: Prepare SSH
         shell: bash
         run: |
           set -euxo pipefail
 
-          echo "== DEBUG =="
-          echo "whoami: $(whoami)"
-          echo "pwd: $(pwd)"
-          echo "HOME=$HOME"
-          ls -la
-
-          # SSH dir sicher anlegen
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
-          # Private Key schreiben (Windows-CRLF sicher)
           printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > "$HOME/.ssh/id_ed25519"
           sed -i 's/\r$//' "$HOME/.ssh/id_ed25519"
           chmod 600 "$HOME/.ssh/id_ed25519"
 
-          # Host bekannt machen
-          ssh-keyscan -H "${{ vars.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
-
-          echo "== SSH FILES =="
-          ls -la "$HOME/.ssh"
 
       # ---------- DEPLOY FRONTEND ----------
       - name: Deploy Frontend (rsync)
         shell: bash
         run: |
           rsync -avrh --delete frontend/build/ \
-            "${{ vars.SSH_USERNAME }}@${{ vars.SSH_HOST }}:/var/www/virtual/${{ vars.SSH_USERNAME }}/html/"
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/virtual/${{ secrets.SSH_USERNAME }}/html/"
 
       # ---------- DEPLOY BACKEND ----------
       - name: Deploy Backend Jar (rsync)
         shell: bash
         run: |
           rsync -avrh backend/target/*.jar \
-            "${{ vars.SSH_USERNAME }}@${{ vars.SSH_HOST }}:/home/${{ vars.SSH_USERNAME }}/app/backend/"
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/app/backend/"
 
       # ---------- ACTIVATE + RESTART ----------
       - name: Activate app.jar + Restart
         shell: bash
         run: |
-          ssh "${{ vars.SSH_USERNAME }}@${{ vars.SSH_HOST }}" << 'EOF'
+          ssh "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
             set -e
             cd ~/app/backend
 
-            # neuestes JAR nehmen, NICHT original-*
             JAR=$(ls -1t *.jar | grep -v '^original-' | head -n 1)
             if [ -z "$JAR" ]; then
               echo "❌ No jar found"
