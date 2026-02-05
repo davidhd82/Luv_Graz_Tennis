@@ -107,7 +107,7 @@ jobs:
 
             JAR=$(ls -1t *.jar | grep -v '^original-' | head -n 1)
             if [ -z "$JAR" ]; then
-              echo "❌ No jar found (excluding original-*.jar)"
+              echo "No jar found (excluding original-*.jar)"
               ls -la
               exit 1
             fi
