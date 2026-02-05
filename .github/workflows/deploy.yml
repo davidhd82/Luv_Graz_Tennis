@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ---------- CHECKOUT ----------
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -37,7 +38,7 @@ jobs:
           chmod +x mvnw
           ./mvnw clean package -Dmaven.test.skip=true
 
-      # ---------- PREPARE SSH ----------
+      # ---------- PREPARE SSH (ROBUST) ----------
       - name: Prepare SSH
         shell: bash
         run: |
@@ -46,38 +47,51 @@ jobs:
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
+          # write key
           printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > "$HOME/.ssh/id_ed25519"
+          # strip CRLF (Windows)
           sed -i 's/\r$//' "$HOME/.ssh/id_ed25519"
           chmod 600 "$HOME/.ssh/id_ed25519"
 
+          # validate key (fails here if secret is malformed)
+          ssh-keygen -y -f "$HOME/.ssh/id_ed25519" >/dev/null
+
+          # trust host
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
+
+          # quick ssh smoke test (no command output, just auth)
+          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o BatchMode=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" "echo ok"
 
       # ---------- DEPLOY FRONTEND ----------
       - name: Deploy Frontend (rsync)
         shell: bash
         run: |
-          rsync -avrh --delete frontend/build/ \
+          rsync -avrh --delete \
+            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes" \
+            frontend/build/ \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/virtual/${{ secrets.SSH_USERNAME }}/html/"
 
       # ---------- DEPLOY BACKEND ----------
       - name: Deploy Backend Jar (rsync)
         shell: bash
         run: |
-          rsync -avrh backend/target/*.jar \
+          rsync -avrh \
+            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes" \
+            backend/target/*.jar \
             "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/app/backend/"
 
       # ---------- ACTIVATE + RESTART ----------
       - name: Activate app.jar + Restart
         shell: bash
         run: |
-          ssh "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
+          ssh -i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
             set -e
             cd ~/app/backend
 
             JAR=$(ls -1t *.jar | grep -v '^original-' | head -n 1)
             if [ -z "$JAR" ]; then
-              echo "❌ No jar found"
+              echo "❌ No jar found (excluding original-*.jar)"
               ls -la
               exit 1
             fi
