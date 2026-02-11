@@ -4,9 +4,12 @@ import at.htlkaindorf.backend.dtos.LoginRequest;
 import at.htlkaindorf.backend.dtos.RegisterRequest;
 import at.htlkaindorf.backend.dtos.AuthResponseDto;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.exceptions.EmailNotVerifiedException;
+import at.htlkaindorf.backend.exceptions.InvalidCredentialsException;
+import at.htlkaindorf.backend.exceptions.UserAlreadyExistsException;
 import at.htlkaindorf.backend.mapper.UserMapper;
 import at.htlkaindorf.backend.repositories.UserRepository;
-import at.htlkaindorf.backend.utils.JwtUtil;
+import at.htlkaindorf.backend.config.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +29,7 @@ public class AuthService {
 
     public AuthResponseDto register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists!");
+            throw new UserAlreadyExistsException("Email already exists!");
         }
 
         User user = new User();
@@ -56,14 +59,14 @@ public class AuthService {
 
     public AuthResponseDto login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Ungültige Anmeldedaten"));
+                .orElseThrow(() -> new InvalidCredentialsException("Ungültige Anmeldedaten"));
 
         if (!user.isEnabled()) {
-            throw new RuntimeException("Bitte bestätige zuerst deine E-Mail-Adresse.");
+            throw new EmailNotVerifiedException("Bitte bestätige zuerst deine E-Mail-Adresse.");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Ungültige Anmeldedaten");
+            throw new InvalidCredentialsException("Ungültige Anmeldedaten");
         }
 
         String token = jwtUtil.generateToken(user.getEmail());

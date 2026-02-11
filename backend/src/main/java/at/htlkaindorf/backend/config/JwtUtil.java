@@ -1,4 +1,4 @@
-package at.htlkaindorf.backend.utils;
+package at.htlkaindorf.backend.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
