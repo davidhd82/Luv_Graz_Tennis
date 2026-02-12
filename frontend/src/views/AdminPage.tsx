@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Admin.css';
+import { API_BASE_URL } from '../api';
 
 interface User {
     userId: number;
@@ -65,7 +66,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch(`${API_BASE_URL}/api/user/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden. Bitte neu anmelden.');
             }
 
-            const response = await fetch('http://localhost:8080/api/admin/users', {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -133,7 +134,7 @@ export default function AdminPage() {
     const fetchAllEntries = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:8080/api/admin/entries', {
+            const response = await fetch(`${API_BASE_URL}/api/admin/entries`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -165,7 +166,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch(`http://localhost:8080/api/admin/users/${userId}/admin-status?isAdmin=${newAdminStatus}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/admin-status?isAdmin=${newAdminStatus}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -214,7 +215,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch(`http://localhost:8080/api/admin/users/${userId}/membership-status?membershipPaid=${!currentStatus}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/membership-status?membershipPaid=${!currentStatus}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -265,7 +266,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch(`http://localhost:8080/api/admin/users/${userId}/booking-hours?hours=${newHours}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/booking-hours?hours=${newHours}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -337,7 +338,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch(`http://localhost:8080/api/admin/users/${userId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -380,7 +381,7 @@ export default function AdminPage() {
                 throw new Error('Kein Token gefunden');
             }
 
-            const response = await fetch(`http://localhost:8080/api/admin/entries/${courtId}/${date}/${hour}`, {
+            const response = await fetch(`${API_BASE_URL}/api/admin/entries/${courtId}/${date}/${hour}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

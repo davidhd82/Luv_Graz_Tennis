@@ -6,6 +6,7 @@ import at.htlkaindorf.backend.entities.Entry;
 import at.htlkaindorf.backend.entities.EntryType;
 import at.htlkaindorf.backend.entities.TennisCourt;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.exceptions.*;
 import at.htlkaindorf.backend.ids.EntryId;
 import at.htlkaindorf.backend.mapper.EntryMapper;
 import at.htlkaindorf.backend.repositories.EntryRepository;
@@ -42,9 +43,9 @@ public class EntryService {
 
         User user = userService.getCurrentUserEntity();
         TennisCourt court = tennisCourtRepository.findById(request.getTennisCourtId())
-                .orElseThrow(() -> new RuntimeException("Tennis court not found"));
+                .orElseThrow(() -> new TennisCourtNotFoundException("Tennis court not found"));
         EntryType entryType = entryTypeRepository.findById(request.getEntryTypeId())
-                .orElseThrow(() -> new RuntimeException("Entry type not found"));
+                .orElseThrow(() -> new EntryTypeNotFoundException("Entry type not found"));
 
 
         for (int i = request.getStartHour(); i < request.getEndHour(); i++) {
@@ -52,13 +53,13 @@ public class EntryService {
             EntryId id = new EntryId(request.getTennisCourtId(), request.getEntryDate(), i);
 
             if (entryRepository.existsById(id)) {
-                throw new RuntimeException("This time slot at " + request.getStartHour() + " is already taken");
+                throw new TimeSlotAlreadyTakenException("This time slot at " + i + " is already taken");
             }
 
             long bookedCount = entryRepository.countByUser_UserIdAndEntryId_EntryDate(
                     user.getUserId(), request.getEntryDate());
             if (!user.isAdmin() && bookedCount >= user.getMaxDailyBookingHours()) {
-                return null;
+                throw new DailyBookingLimitReachedException("Daily booking limit reached");
             }
 
             Entry entry = new Entry();
@@ -79,12 +80,12 @@ public class EntryService {
     public void deleteEntry(LocalDate date, Integer hour, Long courtId) {
         EntryId id = new EntryId(courtId, date, hour);
         Entry entry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entry not found"));
+                .orElseThrow(() -> new EntryNotFoundException("Entry not found"));
 
         User currentUser = userService.getCurrentUserEntity();
 
         if (!entry.getUser().getUserId().equals(currentUser.getUserId())) {
-            throw new RuntimeException("You can only delete your own bookings!");
+            throw new UnauthorizedOperationException("You can only delete your own bookings!");
         }
 
         entryRepository.delete(entry);

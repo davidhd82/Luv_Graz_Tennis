@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../css/MainPage.css';
 import { useNavigate, Outlet } from 'react-router-dom';
+import { API_BASE_URL } from '../api';
 
 import UserProfile from './UserProfile';
 
@@ -56,7 +57,7 @@ function MainPage() {
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch(`${API_BASE_URL}/api/user/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',

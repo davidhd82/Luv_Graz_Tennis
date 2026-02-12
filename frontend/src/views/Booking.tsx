@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { useNavigate } from 'react-router-dom';
 import "../css/Booking.css";
+import { API_BASE_URL } from '../api';
 
 const hours = [
     "08:00", "09:00", "10:00", "11:00",
@@ -126,7 +127,7 @@ export default function BookingPage() {
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch(`${API_BASE_URL}/api/user/me`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -325,7 +326,7 @@ export default function BookingPage() {
 
             const fetchPromises = courts.map(async (courtId) => {
                 try {
-                    const response = await fetch(`http://localhost:8080/api/entries/${courtId}/${dateKey}`, {
+                    const response = await fetch(`${API_BASE_URL}/api/entries/${courtId}/${dateKey}`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -443,12 +444,12 @@ export default function BookingPage() {
 
             let response: Response;
             let method = 'POST';
-            let url = 'http://localhost:8080/api/entries';
+            let url = `${API_BASE_URL}/api/entries`;
 
             if (editingExistingEntry && editingExistingEntry.entryId) {
                 const updateRequest: UpdateEntryRequest = { entryTypeId: selectedEntryType };
                 method = 'PUT';
-                url = `http://localhost:8080/api/entries/${editingExistingEntry.entryId}`;
+                url = `${API_BASE_URL}/api/entries/${editingExistingEntry.entryId}`;
                 response = await fetch(url, {
                     method: method,
                     headers: {
@@ -521,12 +522,12 @@ export default function BookingPage() {
 
             let response;
             if (entryToDelete?.entryId) {
-                response = await fetch(`http://localhost:8080/api/entries/${entryToDelete.entryId}`, {
+                response = await fetch(`${API_BASE_URL}/api/entries/${entryToDelete.entryId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
             } else {
-                response = await fetch(`http://localhost:8080/api/entries/${courtId}/${date}/${hour}`, {
+                response = await fetch(`${API_BASE_URL}/api/entries/${courtId}/${date}/${hour}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` },
                 });

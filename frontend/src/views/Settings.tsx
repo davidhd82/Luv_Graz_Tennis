@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Profile.css';
+import { API_BASE_URL } from '../api';
 
 interface User {
     id: string;
@@ -36,8 +37,7 @@ export default function Settings() {
                 return;
             }
 
-            // const response = await fetch('https://kainhaus.uber.space/api/user/me', {
-            const response = await fetch('http://localhost:8080/api/user/me', {
+            const response = await fetch(`${API_BASE_URL}/api/user/me`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -74,8 +74,7 @@ export default function Settings() {
 
         try {
             const token = localStorage.getItem('token');
-            // const response = await fetch('https://kainhaus.uber.space/api/user/update', {
-            const response = await fetch('http://localhost:8080/api/user/update', {
+            const response = await fetch(`${API_BASE_URL}/api/user/update`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -5,6 +5,9 @@ import at.htlkaindorf.backend.dtos.UserDto;
 import at.htlkaindorf.backend.entities.Entry;
 import at.htlkaindorf.backend.ids.EntryId;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.exceptions.InvalidBookingHoursException;
+import at.htlkaindorf.backend.exceptions.UnauthorizedOperationException;
+import at.htlkaindorf.backend.exceptions.UserNotFoundException;
 import at.htlkaindorf.backend.mapper.EntryMapper;
 import at.htlkaindorf.backend.mapper.UserMapper;
 import at.htlkaindorf.backend.repositories.EntryRepository;
@@ -53,20 +56,24 @@ public class AdminService {
     }
 
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow();
-        if (user.isAdmin()) throw new RuntimeException("Cannot delete admin user");
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (user.isAdmin()) {
+            throw new UnauthorizedOperationException("Cannot delete admin user");
+        }
         userRepository.delete(user);
     }
 
     public UserDto updateAdminStatus(Long id, boolean isAdmin) {
-        User user = userRepository.findById(id).orElseThrow();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setAdmin(isAdmin);
         return userMapper.toUserDTO(userRepository.save(user));
     }
 
     public UserDto updateMembershipStatus(Long id, boolean membershipPaid) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         user.setMembershipPaid(membershipPaid);
 
@@ -108,9 +115,10 @@ public class AdminService {
     }
 
     public UserDto updateMaxDailyBookingHours(Long id, int hours) {
-        User user = userRepository.findById(id).orElseThrow();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         if (hours < 0) {
-            throw new RuntimeException("Hours must be >= 0");
+            throw new InvalidBookingHoursException("Hours must be >= 0");
         }
         user.setMaxDailyBookingHours(hours);
         return userMapper.toUserDTO(userRepository.save(user));

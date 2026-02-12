@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/Auth.css';
+import { API_BASE_URL } from '../api';
 
 interface LoginProps {
     onAuthSuccess: (token: string, user: any) => void;
@@ -19,8 +20,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
         setError('');
 
         try {
-            // const response = await fetch('https://kainhaus.uber.space/api/auth/login', {
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

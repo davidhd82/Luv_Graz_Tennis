@@ -5,6 +5,7 @@ import at.htlkaindorf.backend.dtos.RegisterRequest;
 import at.htlkaindorf.backend.dtos.AuthResponseDto;
 import at.htlkaindorf.backend.dtos.ResendVerificationRequest;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.exceptions.*;
 import at.htlkaindorf.backend.repositories.UserRepository;
 import at.htlkaindorf.backend.services.AuthService;
 import at.htlkaindorf.backend.services.EmailService;
@@ -40,10 +41,10 @@ public class AuthController {
     @GetMapping("/verify")
     public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
         User user = userRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+                .orElseThrow(() -> new InvalidTokenException("Invalid verification token"));
 
         if (user.getTokenExpiryDate().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.badRequest().body("Verification token expired");
+            throw new TokenExpiredException("Verification token expired");
         }
 
         user.setEnabled(true);
@@ -54,16 +55,11 @@ public class AuthController {
         return ResponseEntity.ok("Email verified successfully!");
     }
 
-    // NEU: Endpoint zum Überprüfen des Verifizierungsstatus
     @GetMapping("/check-verification")
     public ResponseEntity<Map<String, Object>> checkVerification(@RequestParam String email) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User user = userOptional.get();
         Map<String, Object> response = new HashMap<>();
         response.put("enabled", user.isEnabled());
         response.put("email", user.getEmail());
@@ -72,42 +68,24 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // NEU: Endpoint zum erneuten Senden der Verifizierungs-Email
     @PostMapping("/resend-verification")
     public ResponseEntity<Map<String, String>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
-        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (userOptional.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "User not found");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User user = userOptional.get();
-
-        // Wenn User bereits verifiziert ist
         if (user.isEnabled()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Email is already verified");
-            return ResponseEntity.badRequest().body(response);
+            throw new EmailAlreadyVerifiedException("Email is already verified");
         }
 
-        try {
-            String newToken = authService.generateVerificationToken();
-            user.setVerificationToken(newToken);
-            user.setTokenExpiryDate(LocalDateTime.now().plusHours(24));
-            userRepository.save(user);
+        String newToken = authService.generateVerificationToken();
+        user.setVerificationToken(newToken);
+        user.setTokenExpiryDate(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
 
-            emailService.sendVerificationEmail(user);
+        emailService.sendVerificationEmail(user);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Verification email sent successfully");
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Error sending verification email");
-            return ResponseEntity.internalServerError().body(response);
-        }
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Verification email sent successfully");
+        return ResponseEntity.ok(response);
     }
 }

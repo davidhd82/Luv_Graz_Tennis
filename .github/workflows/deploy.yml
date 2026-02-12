@@ -1,0 +1,118 @@
+name: Deploy to Uberspace
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- FRONTEND ----------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          echo "== frontend dir =="
+          ls -la
+          echo "== build/dist (if present) =="
+          ls -la build || true
+          ls -la dist || true
+
+      # ---------- BACKEND ----------
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build Backend (Maven, skip tests)
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -Dmaven.test.skip=true
+
+      # ---------- PREPARE SSH (B64 SAFE + HARD CHECKS) ----------
+      - name: Prepare SSH
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+
+          # Decode key safely (single-line base64 secret)
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 --decode > "$HOME/.ssh/id_deploy"
+          chmod 600 "$HOME/.ssh/id_deploy"
+
+          # Validate key (fails here if decoded file is not a valid private key)
+          ssh-keygen -y -f "$HOME/.ssh/id_deploy" >/dev/null
+          ssh-keygen -lf "$HOME/.ssh/id_deploy"
+
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> "$HOME/.ssh/known_hosts"
+          chmod 644 "$HOME/.ssh/known_hosts"
+
+          # Smoke test (must print "ok")
+          ssh -i "$HOME/.ssh/id_deploy" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o PreferredAuthentications=publickey \
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" "echo ok"
+
+      # ---------- DEPLOY FRONTEND (auto-detect build/dist) ----------
+      - name: Deploy Frontend (rsync)
+        shell: bash
+        run: |
+          if [ -d "frontend/build" ]; then
+            OUTDIR="frontend/build"
+          elif [ -d "frontend/dist" ]; then
+            OUTDIR="frontend/dist"
+          else
+            echo "❌ No frontend build output found. Contents of frontend/:"
+            ls -la frontend
+            exit 1
+          fi
+
+          rsync -avrh --delete \
+            -e "ssh -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PreferredAuthentications=publickey" \
+            "${OUTDIR}/" \
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/virtual/${{ secrets.SSH_USERNAME }}/html/"
+
+      # ---------- DEPLOY BACKEND ----------
+      - name: Deploy Backend Jar (rsync)
+        shell: bash
+        run: |
+          rsync -avrh \
+            -e "ssh -i $HOME/.ssh/id_deploy -o IdentitiesOnly=yes -o PreferredAuthentications=publickey" \
+            backend/target/*.jar \
+            "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USERNAME }}/app/backend/"
+
+      # ---------- ACTIVATE + RESTART ----------
+      - name: Activate app.jar + Restart
+        shell: bash
+        run: |
+          ssh -i "$HOME/.ssh/id_deploy" -o IdentitiesOnly=yes "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" << 'EOF'
+            set -e
+            cd ~/app/backend
+
+            JAR=$(ls -1t *.jar | grep -v '^original-' | head -n 1)
+            if [ -z "$JAR" ]; then
+              echo "No jar found (excluding original-*.jar)"
+              ls -la
+              exit 1
+            fi
+
+            cp -f "$JAR" app.jar
+            supervisorctl restart myapp
+            supervisorctl status
+          EOF

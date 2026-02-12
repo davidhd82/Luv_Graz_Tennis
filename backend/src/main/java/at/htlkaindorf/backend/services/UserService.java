@@ -2,12 +2,11 @@ package at.htlkaindorf.backend.services;
 
 import at.htlkaindorf.backend.dtos.UserDto;
 import at.htlkaindorf.backend.entities.User;
+import at.htlkaindorf.backend.exceptions.UserNotFoundException;
 import at.htlkaindorf.backend.mapper.UserMapper;
 import at.htlkaindorf.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +19,7 @@ public class UserService {
     public User getCurrentUserEntity() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     public UserDto getCurrentUser() {
