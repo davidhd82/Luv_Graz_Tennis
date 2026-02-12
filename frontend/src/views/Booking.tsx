@@ -26,11 +26,10 @@ interface EntryDto {
     entryTypeName: string;
     userEmail: string;
     entryId?: number;
-    userFirstName?: string; // NEU: Optional
-    userLastName?: string; // NEU: Optional
+    userFirstName?: string;
+    userLastName?: string;
 }
 
-// NEU: Interface für erweiterte Buchungsinformationen
 interface BookingDetails {
     email: string;
     firstName: string;
@@ -85,7 +84,6 @@ export default function BookingPage() {
     const [editingExistingEntry, setEditingExistingEntry] = useState<EntryDto | null>(null);
     const [bookedHoursToday, setBookedHoursToday] = useState<number>(0);
     const [availableHoursToday, setAvailableHoursToday] = useState<number>(0);
-    // NEU: State für erweiterte Buchungsdetails
     const [bookingDetails, setBookingDetails] = useState<{[key: string]: BookingDetails}>({});
 
     const entryTypes: EntryType[] = [
@@ -267,7 +265,6 @@ export default function BookingPage() {
         );
     };
 
-    // NEU: Funktion um Buchungsdetails für einen Slot zu erhalten
     const getBookingDetails = (courtId: number, time: string): BookingDetails | null => {
         if (!selectedDate || !courtBookings[courtId]) return null;
         const hour = parseInt(time.split(':')[0]);

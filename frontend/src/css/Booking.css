@@ -1,5 +1,3 @@
-/* Booking.css - Modernes Grau/Blau Farbpalette */
-
 :root {
     --dunkelgrau: #353535;
     --mittelgrau: #3C6E71;
@@ -29,7 +27,7 @@ body {
 
 .page {
     width: 100%;
-    max-width: 1600px; /* BREITER gemacht von 1400px */
+    max-width: 1600px;
     padding: 20px;
 }
 
@@ -226,7 +224,6 @@ body {
             0 1px 2px rgba(59, 110, 113, 0.15);
 }
 
-/* NEU: Tabellen-Layout für alle Plätze - BREITERE GESAMTTABELLE */
 .all-courts-section {
     margin: 2rem 0;
     width: 100%;
@@ -240,7 +237,6 @@ body {
     font-weight: 600;
 }
 
-/* Tabellen-Container - BREITER gemacht */
 .all-courts-container {
     background: var(--glass-bg);
     border-radius: 10px;
@@ -252,15 +248,13 @@ body {
     width: 100%;
 }
 
-/* Tabellen-Stil - BREITERE TABELLE */
 .courts-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 1300px; /* BREITERE GESAMTTABELLE - von 1200px auf 1300px */
+    min-width: 1300px;
 }
 
-/* Tabellen-Kopf */
 .table-header-row {
     background: linear-gradient(135deg,
     rgba(40, 75, 99, 0.9) 0%,
@@ -288,7 +282,6 @@ body {
     border-right: none;
 }
 
-/* Erste Spalte (Platz-Nummern) */
 .court-label-cell {
     padding: 0.8rem;
     background: rgba(40, 75, 99, 0.05);
@@ -312,19 +305,17 @@ body {
     font-size: 1rem;
 }
 
-/* Time-Slots Zellen - MEHR ABSTAND ZWISCHEN SPALTEN */
 .time-slot-cell {
     padding: 0.3rem;
     border-bottom: 1px solid rgba(59, 110, 113, 0.1);
     border-right: 1px solid rgba(59, 110, 113, 0.1);
-    min-width: 85px; /* ETWAS BREITER für bessere Verteilung */
+    min-width: 85px;
 }
 
 .time-slot-cell:last-child {
     border-right: none;
 }
 
-/* Time-Slot Button - SLOTS BLEIBEN KLEIN WIE VORHER */
 .time-slot {
     display: flex;
     flex-direction: column;
@@ -332,8 +323,8 @@ body {
     justify-content: center;
     width: 100%;
     min-width: 75px;
-    height: 85px; /* ORIGINALGRÖSSE */
-    padding: 0.5rem 0.3rem; /* ORIGINAL PADDING */
+    height: 85px;
+    padding: 0.5rem 0.3rem;
     border: 1px solid var(--glass-border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.9);
@@ -351,7 +342,7 @@ body {
 }
 
 .time-label {
-    font-size: 0.9rem; /* ORIGINALGRÖSSE */
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--dunkelblau);
     margin-bottom: 0.2rem;
@@ -359,7 +350,7 @@ body {
 }
 
 .slot-status {
-    font-size: 0.85rem; /* ORIGINALGRÖSSE */
+    font-size: 0.85rem;
     font-weight: 600;
     margin: 0.2rem 0;
     min-height: 1.3rem;
@@ -367,7 +358,7 @@ body {
 }
 
 .slot-status-text {
-    font-size: 0.7rem; /* ORIGINALGRÖSSE */
+    font-size: 0.7rem;
     color: var(--dunkelgrau);
     text-align: center;
     line-height: 1.1;
@@ -377,7 +368,6 @@ body {
     max-width: 100%;
 }
 
-/* Status-Klassen für Stunden-Slots */
 .time-slot.locked-type {
     background: linear-gradient(135deg,
     rgba(40, 75, 99, 0.1) 0%,
@@ -738,7 +728,6 @@ body {
             0 1px 2px rgba(40, 40, 40, 0.15);
 }
 
-/* Entry Type Selector */
 .entry-type-selector {
     background: var(--glass-bg);
     border-radius: 10px;
@@ -943,7 +932,6 @@ body {
     border-color: var(--weiß);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .page {
         padding: 15px;
@@ -1010,7 +998,6 @@ body {
         text-align: center;
     }
 
-    /* Auf mobilen Geräten horizontales Scrollen für die Tabelle */
     .all-courts-container {
         overflow-x: auto;
     }
@@ -1044,7 +1031,6 @@ body {
     }
 }
 
-/* Status-Klassen für Stunden-Slots - GEÄNDERT für einheitliche Buchungsfarbe */
 .time-slot.locked-type {
     background: linear-gradient(135deg,
     rgba(40, 75, 99, 0.1) 0%,
@@ -1075,7 +1061,6 @@ body {
     pointer-events: none;
 }
 
-/* NEU: Einheitliche Farbe für alle Buchungen (meine und andere) */
 .time-slot.my-booking,
 .time-slot.other-booking {
     background: linear-gradient(135deg,
@@ -1085,18 +1070,15 @@ body {
     border: 2px solid var(--mittelgrau) !important;
 }
 
-/* Nur meine Buchungen bleiben anklickbar */
 .time-slot.my-booking {
     cursor: pointer;
 }
 
-/* Andere Buchungen bleiben nicht anklickbar für normale Benutzer */
 .time-slot.other-booking:not(.admin-clickable) {
     cursor: not-allowed;
     pointer-events: none;
 }
 
-/* Für Admins sind andere Buchungen anklickbar */
 .time-slot.other-booking.admin-clickable {
     cursor: pointer;
 }
@@ -1111,14 +1093,12 @@ body {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
-/* Hover-Effekt nur für anwählbare Slots */
 .time-slot:hover:not(:disabled):not(.locked-type):not(.course-type):not(.tournament-type):not(.other-booking:not(.admin-clickable)):not(.my-booking) {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(40, 75, 99, 0.15);
     border-color: var(--mittelgrau);
 }
 
-/* NEU: User Initials Badge für Admin-Anzeige */
 .user-initials-badge {
     position: absolute;
     top: 2px;
@@ -1136,7 +1116,6 @@ body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* NEU: Bessere Unterscheidung zwischen eigenen und anderen Buchungen durch Tooltip und Badge */
 .time-slot.my-booking .slot-status-text::after {
     content: " (Meine)";
     font-size: 0.6rem;
@@ -1149,17 +1128,14 @@ body {
     opacity: 0.9;
 }
 
-/* Für Admins: Zeige Initialen im Badge */
 .time-slot.other-booking .user-initials-badge {
     display: block;
 }
 
-/* Für normale Benutzer: Verstecke das Badge */
 .time-slot.other-booking:not(.admin-clickable) .user-initials-badge {
     display: none;
 }
 
-/* Tooltip für Buchungen */
 .time-slot[title]:hover::after {
     content: attr(title);
     position: absolute;
@@ -1181,7 +1157,6 @@ body {
     line-height: 1.4;
 }
 
-/* Verstecke Tooltip für nicht-interaktive Slots */
 .time-slot:disabled[title]:hover::after,
 .time-slot.locked-type[title]:hover::after,
 .time-slot.course-type[title]:hover::after,
@@ -1190,14 +1165,12 @@ body {
     display: none;
 }
 
-/* NEU: Hervorhebung für ausgewählte Slots */
 .time-slot.selected .user-initials-badge {
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border-color: white;
 }
 
-/* Verbesserte Responsive Anzeige */
 @media (max-width: 768px) {
     .user-initials-badge {
         font-size: 0.65rem;
@@ -1232,7 +1205,6 @@ body {
     }
 }
 
-/* Buchungsstatistik */
 .booking-stats {
     display: flex;
     gap: 1.5rem;
@@ -1268,7 +1240,6 @@ body {
     font-weight: 700;
 }
 
-/* Multiselect Info */
 .multiselect-info {
     background: rgba(59, 110, 113, 0.1);
     border: 1px solid rgba(59, 110, 113, 0.2);
@@ -1296,7 +1267,6 @@ body {
     display: inline-block;
 }
 
-/* Selection Info */
 .selection-info {
     margin-top: 10px;
     padding: 10px;
