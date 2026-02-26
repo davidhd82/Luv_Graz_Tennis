@@ -59,6 +59,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(
+                "http://localhost:8081",
                 "http://localhost:5173",
                 "https://kainhaus.uber.space"
         ));
