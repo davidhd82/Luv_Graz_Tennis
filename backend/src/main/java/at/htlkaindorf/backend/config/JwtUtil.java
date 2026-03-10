@@ -13,15 +13,21 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey SECRET = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private static final long EXPIRATION_SHORT = 1000L * 60 * 60;
+    private static final long EXPIRATION_LONG = 1000L * 60 * 60 * 24;
 
-    public String generateToken(String email) {
+    public String generateToken(String email, boolean rememberMe) {
+        long expiry = rememberMe ? EXPIRATION_LONG : EXPIRATION_SHORT;
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(SECRET)
                 .compact();
+    }
+
+    public String generateToken(String email) {
+        return generateToken(email, false);
     }
 
     public String extractEmail(String token) {

@@ -15,6 +15,7 @@ interface User {
     salutation: string;
     title: string;
     isAdmin: boolean;
+    superAdmin: boolean;
     enabled: boolean;
     membershipPaid: boolean;
     maxDailyBookingHours: number;
@@ -118,6 +119,7 @@ export default function AdminPage() {
                 return {
                     ...user,
                     isAdmin: isAdminValue,
+                    superAdmin: user.superAdmin || false,
                     userId: user.userId || user.id,
                     maxDailyBookingHours: user.maxDailyBookingHours || 2
                 };
@@ -431,7 +433,7 @@ export default function AdminPage() {
     return (
         <div className="admin-container">
             <div className="admin-header">
-                <button className="back-btn" onClick={() => navigate('/')}>
+                <button className="back-btn" onClick={() => navigate(-1)}>
                     ← Zurück
                 </button>
                 <h1>Admin Dashboard</h1>
@@ -535,7 +537,11 @@ export default function AdminPage() {
                                 </td>
 
                                 <td className="admin-column">
-                                    {editingUserId === user.userId && editingField === 'admin' ? (
+                                    {user.superAdmin ? (
+                                        <span className="admin-badge-compact is-admin superadmin-badge" title="Hauptadmin – nicht editierbar">
+                                            Hauptadmin
+                                        </span>
+                                    ) : editingUserId === user.userId && editingField === 'admin' ? (
                                         <div className="editing-container-compact">
                                             <div className="editing-content-compact">
                                                 <div className="editing-buttons-compact">
@@ -569,9 +575,12 @@ export default function AdminPage() {
                                     )}
                                 </td>
 
-                                {/* Mitgliedsbeitrag - Kompakt */}
                                 <td className="membership-column">
-                                    {editingUserId === user.userId && editingField === 'membership' ? (
+                                    {user.superAdmin ? (
+                                        <span className={`membership-badge-compact ${user.membershipPaid ? 'paid' : 'not-paid'}`}>
+                                            {user.membershipPaid ? 'Bezahlt' : 'Offen'}
+                                        </span>
+                                    ) : editingUserId === user.userId && editingField === 'membership' ? (
                                         <div className="editing-container-compact">
                                             <div className="editing-content-compact">
                                                 <div className="editing-buttons-compact">
@@ -605,9 +614,12 @@ export default function AdminPage() {
                                     )}
                                 </td>
 
-                                {/* Buchungsstunden - Kompakt */}
                                 <td className="hours-column">
-                                    {editingUserId === user.userId && editingField === 'hours' ? (
+                                    {user.superAdmin ? (
+                                        <span className={`hours-badge-compact has-hours`}>
+                                            {user.maxDailyBookingHours || 2}h
+                                        </span>
+                                    ) : editingUserId === user.userId && editingField === 'hours' ? (
                                         <div className="editing-container-compact">
                                             <div className="editing-content-compact">
                                                 <div className="hours-edit-section-compact">
@@ -661,9 +673,9 @@ export default function AdminPage() {
                                     </span>
                                 </td>
 
-                                {/* Aktionen */}
                                 <td className="actions-column">
                                     <div className="action-buttons-compact">
+                                        {!user.superAdmin && (
                                         <button
                                             onClick={() => handleDeleteUser(user.userId)}
                                             className="delete-user-btn-compact"
@@ -671,6 +683,7 @@ export default function AdminPage() {
                                         >
                                             Löschen
                                         </button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>

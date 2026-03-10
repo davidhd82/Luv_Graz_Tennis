@@ -164,6 +164,7 @@ export default function BookingPage() {
             } else if (response.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('tokenExpiry');
                 setIsAuthenticated(false);
                 setCurrentUser(null);
             }
@@ -324,46 +325,40 @@ export default function BookingPage() {
                 return;
             }
 
-            const fetchPromises = courts.map(async (courtId) => {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/entries/${courtId}/${dateKey}`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (response.status === 401) throw new Error('UNAUTHORIZED');
-                    if (!response.ok) return { courtId, entries: [] };
-
-                    const entries: EntryDto[] = await response.json();
-                    return { courtId, entries };
-                } catch (err) {
-                    console.error(`Fehler beim Laden von Platz ${courtId}:`, err);
-                    return { courtId, entries: [] };
-                }
+            const response = await fetch(`${API_BASE_URL}/api/entries/date/${dateKey}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
             });
 
-            const results = await Promise.all(fetchPromises);
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('tokenExpiry');
+                setIsAuthenticated(false);
+                setCurrentUser(null);
+                setError('Sitzung abgelaufen. Bitte neu anmelden.');
+                setCourtBookings({});
+                return;
+            }
+
+            if (!response.ok) {
+                setCourtBookings({});
+                return;
+            }
+
+            const data: Record<string, EntryDto[]> = await response.json();
             const newCourtBookings: CourtBookings = {};
-            results.forEach(result => {
-                newCourtBookings[result.courtId] = result.entries;
+            courts.forEach(courtId => {
+                newCourtBookings[courtId] = data[courtId.toString()] || [];
             });
 
             setCourtBookings(newCourtBookings);
             calculateBookedHours(newCourtBookings, dateKey);
         } catch (err: any) {
-            console.error('Error fetching entries:', err);
-            if (err.message === 'UNAUTHORIZED') {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                setIsAuthenticated(false);
-                setCurrentUser(null);
-                setError('Sitzung abgelaufen. Bitte neu anmelden.');
-            } else {
-                setError(err.message);
-            }
+            setError(err.message);
             setCourtBookings({});
             setBookedHoursToday(0);
         } finally {
@@ -489,6 +484,7 @@ export default function BookingPage() {
             if (response.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('tokenExpiry');
                 setIsAuthenticated(false);
                 setCurrentUser(null);
                 throw new Error('Sitzung abgelaufen. Bitte neu anmelden.');
@@ -536,6 +532,7 @@ export default function BookingPage() {
             if (response.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('tokenExpiry');
                 setIsAuthenticated(false);
                 setCurrentUser(null);
                 throw new Error('Sitzung abgelaufen.');
@@ -888,8 +885,8 @@ export default function BookingPage() {
             </header>
 
             <div>
-                <button className="back-btn" onClick={() => navigate('/')}>
-                    Zurück
+                <button className="back-btn" onClick={() => navigate(-1)}>
+                    ← Zurück
                 </button>
             </div>
 
@@ -1021,23 +1018,23 @@ export default function BookingPage() {
                                         if (locked) {
                                             typeClass = "locked-type";
                                             titleText = "Gesperrt";
-                                            icon = "G";
+                                            icon = "Gesperrt";
                                         } else if (course) {
                                             typeClass = "course-type";
                                             titleText = "Kurs";
-                                            icon = "K";
+                                            icon = "Kurs";
                                         } else if (tournament) {
                                             typeClass = "tournament-type";
                                             titleText = "Turnier";
-                                            icon = "T";
+                                            icon = "Turnier";
                                         } else if (myBooking) {
                                             typeClass = "my-booking";
                                             titleText = "Meine Buchung";
-                                            icon = "B";
+                                            icon = "Meine";
                                         } else if (otherBooking) {
                                             typeClass = "other-booking";
-                                            titleText = currentUser?.isAdmin ? adminTooltip : "Durch andere gebucht";
-                                            icon = currentUser?.isAdmin ? userInitials || "B" : "B";
+                                            titleText = currentUser?.isAdmin ? adminTooltip : "Belegt";
+                                            icon = currentUser?.isAdmin ? userInitials || "Belegt" : "Belegt";
                                         } else if (isSelected) {
                                             typeClass = "selected";
                                             titleText = "Ausgewählt";

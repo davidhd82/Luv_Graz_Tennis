@@ -3,6 +3,7 @@ package at.htlkaindorf.backend.services;
 import at.htlkaindorf.backend.dtos.EntryDto;
 import at.htlkaindorf.backend.dtos.UserDto;
 import at.htlkaindorf.backend.entities.Entry;
+import at.htlkaindorf.backend.entities.Role;
 import at.htlkaindorf.backend.ids.EntryId;
 import at.htlkaindorf.backend.entities.User;
 import at.htlkaindorf.backend.exceptions.InvalidBookingHoursException;
@@ -58,7 +59,10 @@ public class AdminService {
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        if (user.isAdmin()) {
+        if (user.isSuperAdmin()) {
+            throw new UnauthorizedOperationException("Cannot delete super admin user");
+        }
+        if (user.getRole() == Role.ADMIN) {
             throw new UnauthorizedOperationException("Cannot delete admin user");
         }
         userRepository.delete(user);
@@ -67,13 +71,19 @@ public class AdminService {
     public UserDto updateAdminStatus(Long id, boolean isAdmin) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
-        user.setAdmin(isAdmin);
+        if (user.isSuperAdmin()) {
+            throw new UnauthorizedOperationException("Cannot modify super admin user");
+        }
+        user.setRole(isAdmin ? Role.ADMIN : Role.USER);
         return userMapper.toUserDTO(userRepository.save(user));
     }
 
     public UserDto updateMembershipStatus(Long id, boolean membershipPaid) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (user.isSuperAdmin()) {
+            throw new UnauthorizedOperationException("Cannot modify super admin user");
+        }
 
         user.setMembershipPaid(membershipPaid);
 
@@ -117,6 +127,9 @@ public class AdminService {
     public UserDto updateMaxDailyBookingHours(Long id, int hours) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
+        if (user.isSuperAdmin()) {
+            throw new UnauthorizedOperationException("Cannot modify super admin user");
+        }
         if (hours < 0) {
             throw new InvalidBookingHoursException("Hours must be >= 0");
         }

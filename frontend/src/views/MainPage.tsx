@@ -11,11 +11,14 @@ import tcluv01 from '../assets/tcluv_01-1024x768.jpg';
 import tcluv03 from '../assets/tcluv_03.jpg';
 import tcluv04 from '../assets/tcluv_04-1024x576.jpg';
 
-function MainPage() {
-    const navigate = useNavigate();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<any>(null);
+interface MainPageProps {
+    isLoggedIn: boolean;
+    user: any;
+    onLogout: () => void;
+}
 
+function MainPage({ isLoggedIn, user, onLogout }: MainPageProps) {
+    const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const slides = [tcLuv02, tcLuv05, tcluv01, tcluv03, tcluv04];
@@ -26,23 +29,6 @@ function MainPage() {
         }, 5000);
         return () => clearInterval(interval);
     }, [slides.length]);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-
-        if (token && userData) {
-            setIsLoggedIn(true);
-            setUser(JSON.parse(userData));
-        }
-    }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setIsLoggedIn(false);
-        setUser(null);
-    };
 
     const handleBookingClick = async () => {
         if (!isLoggedIn) {
@@ -85,22 +71,10 @@ function MainPage() {
                     maxDailyBookingHours: userData.maxDailyBookingHours || 2
                 }));
 
-                setUser({
-                    userId: userData.userId || userData.id,
-                    email: userData.email,
-                    firstName: userData.firstName,
-                    lastName: userData.lastName,
-                    isAdmin: isAdmin,
-                    membershipPaid: membershipPaid,
-                    maxDailyBookingHours: userData.maxDailyBookingHours || 2
-                });
-
                 navigate('/booking');
             } else {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                setIsLoggedIn(false);
-                setUser(null);
                 navigate('/login');
             }
         } catch (error) {
@@ -113,36 +87,34 @@ function MainPage() {
         <div className="app">
             <header className="full-width-header">
                 <div className="header-content">
-                    <div className="header-top">
-                        <h2 className="club-title">TC LUV Graz</h2>
-                    </div>
+                    <span className="club-title">TC LUV Graz</span>
 
                     <nav className="full-width-nav">
-                        <a href="#regionen" className="nav-link">Regionen</a>
-                        <a href="https://venuzle.at/anbieter-typ/sportstaetten/" className="nav-link">Sportstätten</a>
-                        <a href="https://venuzle.at/anbieter-typ/kurse/" className="nav-link">Kurse & Camps</a>
-
-                        <div className="nav-auth-section">
-                            {isLoggedIn ? (
-                                <UserProfile user={user} onLogout={handleLogout} />
-                            ) : (
-                                <div className="nav-auth-buttons">
-                                    <button
-                                        className="nav-login-btn"
-                                        onClick={() => navigate('/login')}
-                                    >
-                                        Anmelden
-                                    </button>
-                                    <button
-                                        className="nav-register-btn"
-                                        onClick={() => navigate('/register')}
-                                    >
-                                        Registrieren
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <a href="#anlage" className="nav-link">Anlage</a>
+                        <a href="#kontakt" className="nav-link">Kontakt</a>
+                        <a href="https://venuzle.at/anbieter-typ/sportstaetten/" className="nav-link" target="_blank" rel="noopener noreferrer">Sportstätten</a>
                     </nav>
+
+                    <div className="nav-auth-section">
+                        {isLoggedIn ? (
+                            <UserProfile user={user} onLogout={onLogout} />
+                        ) : (
+                            <div className="nav-auth-buttons">
+                                <button
+                                    className="nav-login-btn"
+                                    onClick={() => navigate('/login')}
+                                >
+                                    Anmelden
+                                </button>
+                                <button
+                                    className="nav-register-btn"
+                                    onClick={() => navigate('/register')}
+                                >
+                                    Registrieren
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -157,59 +129,67 @@ function MainPage() {
                             />
                         ))}
                     </div>
+                    <div className="carousel-overlay" />
+                </div>
 
-                    <div className="carousel-overlay"></div>
+                <div className="hero-cta">
+                    <h2>TC LUV Graz</h2>
+                    <p>Tennis in einer grünen Oase im Herzen von Graz-Wetzelsdorf</p>
+                    <button className="hero-booking-btn" onClick={handleBookingClick}>
+                        Platz jetzt buchen
+                    </button>
                 </div>
             </section>
 
             <section className="full-content">
-                <div className="content-header">
-                    <h1>TC LUV Graz</h1>
-                </div>
+                <div className="content-wrapper">
+                    <div id="anlage" className="content-header">
+                        <h1>TC LUV Graz</h1>
+                    </div>
 
-                <div className="text-content">
-                    <p>
-                        Seit nunmehr 40 Jahren wird am TC LUV Tennis gespielt. Eingebettet in den Gesamtverein LUV liegen 5 Tennisplätze
-                        in unmittelbarer Umgebung des Fußballstadions und der Eisschützenanlage in einer grünen Oase im Bezirk Wetzelsdorf.
-                        Durch die Nähe zur Bushaltestelle der Linie 33 und ausreichend Parkmöglichkeiten ist die Anlage für Jedermann leicht erreichbar.
-                    </p>
+                    <div className="text-content">
+                        <p>
+                            Seit nunmehr 40 Jahren wird am TC LUV Tennis gespielt. Eingebettet in den Gesamtverein LUV liegen 5 Tennisplätze
+                            in unmittelbarer Umgebung des Fußballstadions und der Eisschützenanlage in einer grünen Oase im Bezirk Wetzelsdorf.
+                            Durch die Nähe zur Bushaltestelle der Linie 33 und ausreichend Parkmöglichkeiten ist die Anlage für Jedermann leicht erreichbar.
+                        </p>
+                        <p>
+                            Der TC LUV war von jeher sehr sportlich ausgerichtet und nimmt mit 18 Mannschaften an den Mannschaftsmeisterschaften
+                            des STTV und des ÖTV teil. Aber auch unsere Hobbyspieler sind eine wichtige, tragende Säule unseres Vereinslebens,
+                            genauso wie ein bequemes Ambiente, heimische Kulinarik und unsere Feste und Veranstaltungen.
+                        </p>
+                    </div>
 
-                    <p>
-                        Der TC LUV war von jeher sehr sportlich ausgerichtet und nimmt mit 18 Mannschaften an den Mannschaftsmeisterschaften
-                        des STTV und des ÖTV teil. Aber auch unsere Hobbyspieler sind eine wichtige, tragende Säule unseres Vereinslebens,
-                        genauso wie ein bequemes Ambiente, heimische Kulinarik und unsere Feste und Veranstaltungen.
-                    </p>
-                </div>
+                    <div className="features-container">
+                        <div className="feature-section">
+                            <h3>Unsere Anlage</h3>
+                            <div className="feature-list">
+                                <span className="feature-item">5 Sandplätze</span>
+                                <span className="feature-item">Kantine</span>
+                                <span className="feature-item">Gastgarten</span>
+                                <span className="feature-item">Eigene Parkplätze</span>
+                            </div>
+                        </div>
 
-                <div className="features-container">
-                    <div className="feature-section">
-                        <h3>Unsere Anlage umfasst:</h3>
-                        <div className="feature-list">
-                            <span className="feature-item">5 Sandplätze</span>
-                            <span className="feature-item">Kantine</span>
-                            <span className="feature-item">Gastgarten</span>
-                            <span className="feature-item">Eigene Parkplätze</span>
+                        <div id="kontakt" className="contact-section">
+                            <h3>Kontakt & Öffnungszeiten</h3>
+                            <div className="contact-info">
+                                <p><strong>Adresse:</strong> Kunssiegasse 16, 8063 Graz</p>
+                                <p><strong>Telefon:</strong> +43 316 123 456</p>
+                                <p><strong>E-Mail:</strong> info@tcluvgraz.at</p>
+                                <p><strong>Öffnungszeiten:</strong> Mo–Fr 8:00–22:00, Sa–So 9:00–20:00</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="contact-section">
-                        <h3>Kontakt & Öffnungszeiten</h3>
-                        <div className="contact-info">
-                            <p><strong>Adresse:</strong> Kunssiegasse 16, 8063 Graz</p>
-                            <p><strong>Telefon:</strong> +43 316 123 456</p>
-                            <p><strong>E-Mail:</strong> info@tcluvgraz.at</p>
-                            <p><strong>Öffnungszeiten:</strong> Mo-Fr 8:00-22:00, Sa-So 9:00-20:00</p>
-                        </div>
+                    <div className="booking-container-bottom">
+                        <button
+                            className="booking-btn-large"
+                            onClick={handleBookingClick}
+                        >
+                            Online Buchen
+                        </button>
                     </div>
-                </div>
-
-                <div className="booking-container-bottom">
-                    <button
-                        className="booking-btn-large"
-                        onClick={handleBookingClick} // GEÄNDERT: handleBookingClick statt direkt navigate
-                    >
-                        Online Buchen
-                    </button>
                 </div>
             </section>
 
@@ -218,41 +198,34 @@ function MainPage() {
             <footer className="full-footer">
                 <div className="footer-content">
                     <div className="footer-section">
-                        <div className="support-section">
-                            <h4>UNTERSTÜTZT VON</h4>
-                            <div className="support-logo">
-                                <span>VENUZLE</span>
-                            </div>
+                        <h4>Unterstützt von</h4>
+                        <div className="support-logo">VENUZLE</div>
+                    </div>
+
+                    <div className="footer-section">
+                        <h4>Folge uns</h4>
+                        <div className="social-links">
+                            <a href="https://www.facebook.com/Venuzle" className="social-link" target="_blank" rel="noopener noreferrer">
+                                Facebook
+                            </a>
+                            <a href="https://www.instagram.com/venuzle" className="social-link" target="_blank" rel="noopener noreferrer">
+                                Instagram
+                            </a>
+                            <a href="https://x.com/venuzle" className="social-link" target="_blank" rel="noopener noreferrer">
+                                Twitter / X
+                            </a>
                         </div>
                     </div>
 
                     <div className="footer-section">
-                        <div className="social-section">
-                            <h4>FOLGE UNS</h4>
-                            <div className="social-links">
-                                <a href="https://www.facebook.com/Venuzle" className="social-link">
-                                    <span className="social-icon">f</span> Facebook
-                                </a>
-                                <a href="https://www.instagram.com/venuzle" className="social-link">
-                                    <span className="social-icon">☒</span> Instagram
-                                </a>
-                                <a href="https://x.com/venuzle" className="social-link">
-                                    <span className="social-icon">▶</span> Twitter
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="footer-section">
+                        <h4>Venuzle</h4>
                         <div className="venuzle-links">
-                            <h4>VENUZLE</h4>
                             <div className="link-column">
-                                <a href="https://manager.venuzle.com/" className="footer-link">Für Sportanbieter</a>
-                                <a href="https://venuzle.at/karriere/" className="footer-link">Karriere</a>
-                                <a href="https://venuzle.at/agb/" className="footer-link">AGB</a>
-                                <a href="https://venuzle.at/datenschutz/" className="footer-link">Datenschutz</a>
-                                <a href="https://venuzle.at/mangopay/" className="footer-link">Nutzungsbedingungen Mangopay</a>
-                                <a href="https://venuzle.at/impressum/" className="footer-link">Impressum</a>
+                                <a href="https://manager.venuzle.com/" className="footer-link" target="_blank" rel="noopener noreferrer">Für Sportanbieter</a>
+                                <a href="https://venuzle.at/karriere/" className="footer-link" target="_blank" rel="noopener noreferrer">Karriere</a>
+                                <a href="https://venuzle.at/agb/" className="footer-link" target="_blank" rel="noopener noreferrer">AGB</a>
+                                <a href="https://venuzle.at/datenschutz/" className="footer-link" target="_blank" rel="noopener noreferrer">Datenschutz</a>
+                                <a href="https://venuzle.at/impressum/" className="footer-link" target="_blank" rel="noopener noreferrer">Impressum</a>
                             </div>
                         </div>
                     </div>

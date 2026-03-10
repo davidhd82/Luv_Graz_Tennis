@@ -1,9 +1,11 @@
 package at.htlkaindorf.backend.controller;
 
+import at.htlkaindorf.backend.dtos.ForgotPasswordRequest;
 import at.htlkaindorf.backend.dtos.LoginRequest;
 import at.htlkaindorf.backend.dtos.RegisterRequest;
 import at.htlkaindorf.backend.dtos.AuthResponseDto;
 import at.htlkaindorf.backend.dtos.ResendVerificationRequest;
+import at.htlkaindorf.backend.dtos.ResetPasswordRequest;
 import at.htlkaindorf.backend.entities.User;
 import at.htlkaindorf.backend.exceptions.*;
 import at.htlkaindorf.backend.repositories.UserRepository;
@@ -65,6 +67,22 @@ public class AuthController {
         response.put("email", user.getEmail());
         response.put("firstName", user.getFirstName());
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Falls ein Konto mit dieser E-Mail existiert, wurde eine Nachricht gesendet.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Passwort erfolgreich zurückgesetzt.");
         return ResponseEntity.ok(response);
     }
 

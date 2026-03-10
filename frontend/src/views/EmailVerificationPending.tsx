@@ -116,7 +116,8 @@ export default function EmailVerificationPending() {
     };
 
     return (
-        <div className="verification-container">
+        <div className="verification-container" style={{ position: 'relative' }}>
+            <button className="auth-back-btn" onClick={() => navigate(-1)}>← Zurück</button>
             <div className="verification-card">
                 <div className="verification-icon">📧</div>
 

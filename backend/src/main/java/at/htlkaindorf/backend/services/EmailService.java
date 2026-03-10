@@ -115,6 +115,53 @@ public class EmailService {
         sendHtmlMail(user.getEmail(), subject, plainText, wrapHtml(subject, contentHtml));
     }
 
+    public void sendPasswordResetEmail(User user, String resetLink) {
+        String subject = "Passwort zurücksetzen";
+
+        String plainText =
+                "Hallo " + safe(user.getFirstName()) + ",\n\n" +
+                        "Sie haben das Zurücksetzen Ihres Passworts beantragt.\n" +
+                        "Klicken Sie auf diesen Link um Ihr Passwort zu ändern:\n" +
+                        resetLink + "\n\n" +
+                        "Dieser Link ist 1 Stunde gültig.\n" +
+                        "Falls Sie dies nicht beantragt haben, können Sie diese E-Mail ignorieren.\n";
+
+        String contentHtml = """
+                <h1 style="margin:0 0 12px 0;font-size:20px;line-height:1.3;color:#111827;">
+                    Passwort zurücksetzen
+                </h1>
+                <p style="margin:0 0 16px 0;color:#374151;font-size:14px;line-height:1.6;">
+                    Hallo <strong>%s</strong>,
+                </p>
+                <p style="margin:0 0 16px 0;color:#374151;font-size:14px;line-height:1.6;">
+                    Sie haben das Zurücksetzen Ihres Passworts beantragt. Klicken Sie auf den folgenden Button um ein neues Passwort zu vergeben.
+                </p>
+                <div style="text-align:center;margin:22px 0;">
+                    <a href="%s"
+                       style="display:inline-block;background:#284B63;color:#ffffff;text-decoration:none;
+                              padding:12px 18px;border-radius:8px;font-weight:600;font-size:14px;">
+                        Passwort zurücksetzen
+                    </a>
+                </div>
+                <p style="margin:0 0 10px 0;color:#374151;font-size:14px;line-height:1.6;">
+                    Alternativ können Sie diesen Link in Ihren Browser kopieren:
+                </p>
+                <p style="margin:0 0 16px 0;color:#2563eb;font-size:13px;line-height:1.6;word-break:break-all;">
+                    <a href="%s" style="color:#2563eb;text-decoration:underline;">%s</a>
+                </p>
+                <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
+                    Dieser Link ist 1 Stunde gültig. Falls Sie kein Passwort zurücksetzen beantragt haben, können Sie diese E-Mail ignorieren.
+                </p>
+                """.formatted(
+                escapeHtml(safe(user.getFirstName())),
+                escapeHtml(resetLink),
+                escapeHtml(resetLink),
+                escapeHtml(resetLink)
+        );
+
+        sendHtmlMail(user.getEmail(), subject, plainText, wrapHtml(subject, contentHtml));
+    }
+
     public void sendSubscriptionExpired(User user) {
         String subject = "Mitgliedsbeitrag abgelaufen";
 

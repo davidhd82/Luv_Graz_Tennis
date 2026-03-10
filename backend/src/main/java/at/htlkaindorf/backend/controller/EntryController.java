@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/entries")
@@ -16,6 +17,11 @@ import java.util.List;
 public class EntryController {
 
     private final EntryService entryService;
+
+    @GetMapping("/date/{date}")
+    public ResponseEntity<Map<Long, List<EntryDto>>> getEntriesByDate(@PathVariable LocalDate date) {
+        return ResponseEntity.ok(entryService.getEntriesByDate(date));
+    }
 
     @GetMapping("/{courtId}/{date}")
     public ResponseEntity<List<EntryDto>> getEntriesByDateAndCourt(

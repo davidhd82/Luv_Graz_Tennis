@@ -7,7 +7,9 @@ import Register from "./views/Register.tsx";
 import Profile from "./views/Profile.tsx";
 import Settings from "./views/Settings.tsx";
 import EmailVerificationPending from "./views/EmailVerificationPending.tsx";
-import AdminPage from "./views/AdminPage.tsx"; // Neue Admin-Komponente
+import AdminPage from "./views/AdminPage.tsx";
+import ForgotPassword from "./views/ForgotPassword.tsx";
+import ResetPassword from "./views/ResetPassword.tsx";
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,17 +18,21 @@ function App() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('user');
+        const tokenExpiry = localStorage.getItem('tokenExpiry');
+
+        if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('tokenExpiry');
+            return;
+        }
 
         if (token && userData) {
             setIsLoggedIn(true);
-
-            // Parse user data und stelle sicher, dass isAdmin korrekt gesetzt ist
             const parsedUser = JSON.parse(userData);
-            // Stelle sicher, dass isAdmin existiert (falls altes admin Feld verwendet wurde)
             if (parsedUser.admin !== undefined && parsedUser.isAdmin === undefined) {
                 parsedUser.isAdmin = parsedUser.admin;
                 delete parsedUser.admin;
-                // Update localStorage mit korrekter Struktur
                 localStorage.setItem('user', JSON.stringify(parsedUser));
             }
             setUser(parsedUser);
@@ -35,16 +41,13 @@ function App() {
 
     const handleAuthSuccess = (token: string, userData: any) => {
         setIsLoggedIn(true);
-
-        // Stelle sicher, dass isAdmin korrekt gesetzt ist
         const userToStore = {
             userId: userData.userId || userData.id,
             email: userData.email,
             firstName: userData.firstName,
             lastName: userData.lastName,
-            isAdmin: userData.isAdmin || userData.admin || false // Behandle beide Fälle
+            isAdmin: userData.isAdmin || userData.admin || false
         };
-
         setUser(userToStore);
         localStorage.setItem('user', JSON.stringify(userToStore));
     };
@@ -52,6 +55,7 @@ function App() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('tokenExpiry');
         setIsLoggedIn(false);
         setUser(null);
     };
@@ -67,33 +71,27 @@ function App() {
                     />
                 } />
                 <Route path="/booking" element={<Booking />} />
-                <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />}/>
-                <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} />}/>
-                <Route path="/profile" element={<Profile />}/>
-                <Route path="/settings" element={<Settings />}/>
+                <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />} />
+                <Route path="/register" element={<Register onAuthSuccess={handleAuthSuccess} />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/verify-pending" element={<EmailVerificationPending />} />
-                {/* Neue Admin Route mit isAdmin-Check */}
                 <Route path="/admin" element={
                     <ProtectedAdminRoute user={user}>
                         <AdminPage />
                     </ProtectedAdminRoute>
-                }/>
+                } />
             </Routes>
         </Router>
     );
 }
 
-// Protected Route für Admin - prüft ob user.isAdmin === true
 function ProtectedAdminRoute({ children, user }: { children: JSX.Element, user: any }) {
-    console.log('ProtectedAdminRoute check - user:', user);
-    console.log('Is admin?', user?.isAdmin);
-
     if (!user || !user.isAdmin) {
-        console.log('Redirecting to home - not admin');
         return <Navigate to="/" replace />;
     }
-
-    console.log('Granting admin access');
     return children;
 }
 

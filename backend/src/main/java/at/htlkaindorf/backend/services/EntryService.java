@@ -17,8 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,15 @@ public class EntryService {
                 .stream()
                 .map(entryMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public Map<Long, List<EntryDto>> getEntriesByDate(LocalDate date) {
+        return entryRepository.findAllByEntryId_EntryDate(date)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        e -> e.getTennisCourt().getTennisCourtId(),
+                        Collectors.mapping(entryMapper::toDto, Collectors.toList())
+                ));
     }
 
     public List<EntryDto> createEntry(CreateEntryRequest request) {

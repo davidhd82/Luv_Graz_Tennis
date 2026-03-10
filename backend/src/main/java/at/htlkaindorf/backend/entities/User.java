@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -16,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -45,7 +49,12 @@ public class User {
     private String salutation;
     private String title;
 
-    private boolean isAdmin;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'USER'")
+    private Role role = Role.USER;
+
+    @Column(nullable = false)
+    private boolean superAdmin = false;
 
     private boolean membershipPaid;
 
@@ -60,7 +69,38 @@ public class User {
     private String verificationToken;
     private LocalDateTime tokenExpiryDate;
 
+    private String passwordResetToken;
+    private LocalDateTime passwordResetTokenExpiry;
+
     @Column(nullable = false)
     private int maxDailyBookingHours = 2;
 
+    public boolean isAdmin() {
+        return role == Role.ADMIN;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + (role != null ? role.name() : Role.USER.name())));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 }

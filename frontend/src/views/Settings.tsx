@@ -116,7 +116,7 @@ export default function Settings() {
     return (
         <div className="profile-container">
             <div className="profile-header">
-                <button className="back-btn" onClick={() => navigate('/profile')}>
+                <button className="back-btn" onClick={() => navigate(-1)}>
                     ← Zurück
                 </button>
                 <h1>Profil bearbeiten</h1>

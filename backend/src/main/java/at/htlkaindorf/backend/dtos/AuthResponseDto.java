@@ -13,4 +13,5 @@ public class AuthResponseDto {
     private String firstName;
     private String lastName;
     private boolean isAdmin;
+    private long tokenExpiry;
 }

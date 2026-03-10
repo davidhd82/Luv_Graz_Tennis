@@ -4,7 +4,7 @@ import '../css/Profile.css';
 import { API_BASE_URL } from '../api';
 
 interface User {
-    userId: number; // Geändert von id zu userId
+    userId: number;
     salutation: string;
     title: string;
     firstName: string;
@@ -14,9 +14,10 @@ interface User {
     postalCode: string;
     city: string;
     mobile: string;
-    isAdmin: boolean; // Geändert von admin zu isAdmin
-    enabled?: boolean; // Optional
-    membershipPaid?: boolean; // Optional
+    isAdmin: boolean;
+    enabled?: boolean;
+    membershipPaid?: boolean;
+    membershipEndDate?: string;
 }
 
 export default function Profile() {
@@ -49,6 +50,7 @@ export default function Profile() {
                 if (response.status === 401) {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
+                    localStorage.removeItem('tokenExpiry');
                     navigate('/login');
                     return;
                 }
@@ -56,9 +58,7 @@ export default function Profile() {
             }
 
             const userData = await response.json();
-            console.log('User data from /api/user/me:', userData); // Debug log
 
-            // Stelle sicher, dass die Felder korrekt gemappt werden
             const formattedUser: User = {
                 userId: userData.userId || userData.id || 0,
                 salutation: userData.salutation || '',
@@ -72,12 +72,12 @@ export default function Profile() {
                 mobile: userData.mobile || '',
                 isAdmin: userData.isAdmin || userData.admin || false,
                 enabled: userData.enabled,
-                membershipPaid: userData.membershipPaid
+                membershipPaid: userData.membershipPaid,
+                membershipEndDate: userData.membershipEndDate,
             };
 
             setUser(formattedUser);
 
-            // Update localStorage user data
             const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const userObj = JSON.parse(storedUser);
@@ -85,7 +85,6 @@ export default function Profile() {
                 userObj.isAdmin = formattedUser.isAdmin;
                 localStorage.setItem('user', JSON.stringify(userObj));
             } else {
-                // Falls kein user im localStorage existiert, erstelle einen
                 localStorage.setItem('user', JSON.stringify({
                     userId: formattedUser.userId,
                     email: formattedUser.email,
@@ -95,15 +94,10 @@ export default function Profile() {
                 }));
             }
         } catch (err: any) {
-            console.error('Error fetching user:', err);
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleEdit = () => {
-        navigate('/settings');
     };
 
     const handleDeleteAccount = async () => {
@@ -123,6 +117,7 @@ export default function Profile() {
             if (response.ok) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('tokenExpiry');
                 alert('Ihr Konto wurde erfolgreich gelöscht.');
                 navigate('/');
                 window.location.reload();
@@ -140,22 +135,6 @@ export default function Profile() {
         }
     };
 
-    const handleAdminDashboard = () => {
-        if (user?.isAdmin) {
-            navigate('/admin');
-        }
-    };
-
-    const handleMembershipInfo = () => {
-        if (user?.membershipPaid === false) {
-            alert('Ihr Mitgliedsbeitrag ist noch nicht bezahlt. Bitte wenden Sie sich an den Administrator, um Buchungen vornehmen zu können.');
-        } else if (user?.membershipPaid === true) {
-            alert('Ihr Mitgliedsbeitrag ist bezahlt. Sie können Tennisplätze buchen!');
-        } else {
-            alert('Mitgliedsstatus konnte nicht überprüft werden.');
-        }
-    };
-
     if (loading) {
         return (
             <div className="profile-container">
@@ -168,8 +147,8 @@ export default function Profile() {
         return (
             <div className="profile-container">
                 <div className="error-message">{error}</div>
-                <button className="back-btn" onClick={() => navigate('/')} style={{ marginTop: '20px' }}>
-                    ← Zurück zur Startseite
+                <button className="back-btn" onClick={() => navigate(-1)} style={{ marginTop: '20px' }}>
+                    ← Zurück
                 </button>
             </div>
         );
@@ -178,7 +157,7 @@ export default function Profile() {
     return (
         <div className="profile-container">
             <div className="profile-header">
-                <button className="back-btn" onClick={() => navigate('/')}>
+                <button className="back-btn" onClick={() => navigate(-1)}>
                     ← Zurück
                 </button>
                 <h1>Mein Profil</h1>
@@ -194,7 +173,7 @@ export default function Profile() {
                         <p>{user?.email}</p>
                         {user?.isAdmin && (
                             <div className="admin-tag">
-                                <span className="admin-badge">ADMIN</span>
+                                <span className="admin-role-badge">Administrator</span>
                             </div>
                         )}
                         {user?.membershipPaid !== undefined && (
@@ -231,7 +210,7 @@ export default function Profile() {
 
                 <div className="profile-section">
                     <h3>Kontaktinformationen</h3>
-                    <div className="info-grid">
+                    <div className="info-grid-single">
                         <div className="info-item">
                             <label>E-Mail:</label>
                             <span>{user?.email}</span>
@@ -272,16 +251,14 @@ export default function Profile() {
                         </div>
                         <div className="info-item">
                             <label>Mitgliedsstatus:</label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span className={`membership-status-badge ${user?.membershipPaid ? 'paid' : 'not-paid'}`}>
-                                    {user?.membershipPaid ? 'Bezahlt' : 'Offen'}
-                                </span>
-                            </div>
+                            <span className={`membership-status-badge ${user?.membershipPaid ? 'paid' : 'not-paid'}`}>
+                                {user?.membershipPaid ? 'Bezahlt' : 'Offen'}
+                            </span>
                         </div>
-                        {user?.isAdmin && (
+                        {user?.membershipEndDate && (
                             <div className="info-item">
-                                <label>Rolle:</label>
-                                <span className="admin-role-badge">Administrator</span>
+                                <label>Mitglied bis:</label>
+                                <span>{new Date(user.membershipEndDate).toLocaleDateString('de-DE')}</span>
                             </div>
                         )}
                     </div>
@@ -289,11 +266,11 @@ export default function Profile() {
 
                 <div className="profile-actions">
                     {user?.isAdmin && (
-                        <button className="admin-btn" onClick={handleAdminDashboard}>
+                        <button className="admin-btn" onClick={() => navigate('/admin')}>
                             Admin Dashboard
                         </button>
                     )}
-                    <button className="edit-btn" onClick={handleEdit}>
+                    <button className="edit-btn" onClick={() => navigate('/settings')}>
                         Profil bearbeiten
                     </button>
                     <button className="delete-btn" onClick={handleDeleteAccount}>

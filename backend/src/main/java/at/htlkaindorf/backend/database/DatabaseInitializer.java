@@ -1,6 +1,7 @@
 package at.htlkaindorf.backend.database;
 
 import at.htlkaindorf.backend.entities.EntryType;
+import at.htlkaindorf.backend.entities.Role;
 import at.htlkaindorf.backend.entities.TennisCourt;
 import at.htlkaindorf.backend.entities.User;
 import at.htlkaindorf.backend.repositories.EntryTypeRepository;
@@ -49,7 +50,8 @@ public class DatabaseInitializer {
             admin.setSalutation("Herr");
             admin.setTitle("");
             admin.setEnabled(true);
-            admin.setAdmin(true);
+            admin.setRole(Role.ADMIN);
+            admin.setSuperAdmin(true);
             admin.setMembershipPaid(true);
 
             userRepository.save(admin);
