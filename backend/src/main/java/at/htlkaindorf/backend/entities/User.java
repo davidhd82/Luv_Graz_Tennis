@@ -53,7 +53,7 @@ public class User implements UserDetails {
     @Column(nullable = false, columnDefinition = "varchar(20) default 'USER'")
     private Role role = Role.USER;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean superAdmin = false;
 
     private boolean membershipPaid;
